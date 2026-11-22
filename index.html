@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B1F26">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MG Gestão">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link rel="icon" href="icone-192.png">
+<title>MG Gestão · Locações, contratos e cobranças</title>
+<style>
+:root{--g:#1B1F26;--g2:#262B34;--g3:#353B46;--y:#FFC21A;--y2:#F29F05;--t:#EEF0F3;--m:#9AA3B2;--ok:#38C172;--warn:#F6993F;--bad:#E3342F;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--g);color:var(--t);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--g);padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--y2)}
+header img{height:34px;width:34px;border-radius:8px}
+header h1{font-size:17px;margin:0;letter-spacing:.5px}
+header small{display:block;color:var(--m);font-size:11px;font-weight:400;letter-spacing:0}
+main{padding:14px 14px 120px;max-width:820px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:#12151A;display:flex;justify-content:space-around;padding:6px 4px calc(env(safe-area-inset-bottom) + 6px);border-top:1px solid var(--g3)}
+nav button{background:none;border:0;color:var(--m);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;min-width:58px}
+nav button b{font-size:20px;line-height:1}
+nav button.on{color:var(--y)}
+#mic{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 74px);z-index:7;width:64px;height:64px;border-radius:50%;border:0;background:linear-gradient(180deg,var(--y),var(--y2));color:var(--g);font-size:28px;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+#mic.ouvindo{animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,194,26,.7)}100%{box-shadow:0 0 0 22px rgba(255,194,26,0)}}
+h2{font-size:18px;margin:6px 0 12px}
+h3{font-size:14px;margin:18px 0 8px;color:var(--y);text-transform:uppercase;letter-spacing:.6px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:var(--g2);border-radius:var(--r);padding:12px 14px;border:1px solid var(--g3)}
+.card .l{color:var(--m);font-size:12px}
+.card .v{font-size:20px;font-weight:700;margin-top:2px}
+.card.bad .v{color:#ff7b76}.card.ok .v{color:#6ee7a1}.card.y .v{color:var(--y)}
+.item{background:var(--g2);border:1px solid var(--g3);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.item .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.item .nm{font-weight:600}
+.item .sub{color:var(--m);font-size:12.5px;margin-top:2px}
+.item .val{font-weight:700;white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--g3);color:var(--t);margin-top:6px}
+.tag.ok{background:#1f4d33;color:#8ff0b6}.tag.warn{background:#5a3a12;color:#ffc98a}.tag.bad{background:#5c1a18;color:#ffb1ae}.tag.y{background:#5a4706;color:var(--y)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{text-decoration:none;display:inline-block;text-align:center;border:0;border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--g3);color:var(--t)}
+.btn.y{background:var(--y);color:var(--g)}.btn.ok{background:#25a35a;color:#fff}.btn.wa{background:#1fa855;color:#fff}.btn.bad{background:#b3261e;color:#fff}
+.btn.s{padding:7px 10px;font-size:12.5px}
+.btn.full{width:100%;margin-top:8px}
+.bar{display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 4px 0;border-bottom:1px solid var(--g3)}
+.bar div{flex:1;display:flex;gap:2px;align-items:flex-end;height:100%}
+.bar i{flex:1;border-radius:4px 4px 0 0;display:block;min-height:2px}
+.bar .r{background:var(--y)}.bar .d{background:#5d6675}
+.lbls{display:flex;gap:6px;font-size:10.5px;color:var(--m);padding:4px}.lbls span{flex:1;text-align:center}
+.vazio{color:var(--m);text-align:center;padding:24px 8px}
+label{display:block;font-size:12px;color:var(--m);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--g3);background:#12151A;color:var(--t);font-size:15px;font-family:inherit}
+textarea{min-height:70px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.seg{display:flex;background:#12151A;border-radius:10px;padding:3px;gap:3px;margin-top:6px}
+.seg button{flex:1;border:0;background:none;color:var(--m);padding:9px;border-radius:8px;font-weight:700}
+.seg button.on{background:var(--y);color:var(--g)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:flex-end;justify-content:center}
+#modal.on{display:flex}
+#modal .box{background:var(--g2);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px)}
+#modal .box h2{margin-top:0}
+.ouvido{background:#12151A;border-radius:10px;padding:12px;min-height:48px;font-size:16px;margin:8px 0}
+.entendi{background:#2b2a1a;border:1px solid #6b5a12;border-radius:10px;padding:12px;margin-top:10px}
+.dica{font-size:12.5px;color:var(--m)}
+.dica code{color:var(--y);font-family:inherit}
+.timeline{border-left:2px solid var(--g3);margin-left:6px;padding-left:12px}
+.timeline div{margin-bottom:8px;font-size:13px}.timeline b{color:var(--y);font-weight:600}
+#doc{display:none;position:fixed;inset:0;z-index:30;background:#e9ebef;overflow:auto}
+#doc.on{display:block}
+#doc .acoes{position:sticky;top:0;background:var(--g);padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+#papel{background:#fff;color:#111;max-width:800px;margin:14px auto;padding:28px 30px;font:12.5px/1.5 Arial,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+#papel .cab{border-bottom:4px solid #F5A60A;padding-bottom:8px;margin-bottom:14px}
+#papel .cab img{height:56px}
+#papel .t{text-align:center;font-weight:700;font-size:16px;margin:10px 0 2px}
+#papel .s{text-align:center;font-weight:700;color:#5A6270;margin:0 0 4px}
+#papel .h{font-weight:700;margin:16px 0 6px;border-left:5px solid #F5A60A;padding-left:8px}
+#papel p{margin:0 0 6px;text-align:justify}
+#papel p.ind{padding-left:18px}
+#papel table{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:11px}
+#papel td{border:1px solid #c9ccd2;padding:4px 6px;vertical-align:top}
+#papel td.g{background:#1B1F26;color:#FFC21A;font-weight:700}
+#papel td.k{background:#FFF4D6;width:38%}
+#papel .ass{margin-top:34px;text-align:center}
+#papel .pb{page-break-before:always;border-top:1px dashed #ccc;margin-top:20px;padding-top:10px}
+#papel .falta{background:#fff3b0}
+@media print{
+  body>*:not(#doc){display:none!important}
+  #doc{position:static;display:block;background:#fff}
+  #doc .acoes{display:none}
+  #papel{box-shadow:none;margin:0;max-width:none;padding:0}
+  #papel .falta{background:none}
+}
+@media (min-width:700px){.cards{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <img src="icone-192.png" alt="">
+  <h1>MG GESTÃO<small>Locações · contratos · cobranças · financeiro</small></h1>
+</header>
+<main id="app"></main>
+<button id="mic" title="Falar um comando" aria-label="Falar um comando">🎤</button>
+<nav id="nav">
+  <button data-t="inicio" class="on"><b>🏠</b>Início</button>
+  <button data-t="contratos"><b>📄</b>Contratos</button>
+  <button data-t="cobrancas"><b>💰</b>Cobranças</button>
+  <button data-t="financeiro"><b>📊</b>Financeiro</button>
+  <button data-t="mais"><b>⚙️</b>Mais</button>
+</nav>
+<div id="modal"><div class="box" id="mbox"></div></div>
+<div id="doc"><div class="acoes" id="docacoes"></div><div id="papel"></div></div>
+
+<script src="contrato.js"></script>
+<script>
+/* ===================== utilidades ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const pISO = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const hoje = () => iso(new Date());
+const br = s => s ? s.split('-').reverse().join('/') : '';
+const diasEntre = (a,b) => Math.round((pISO(b)-pISO(a))/86400000);
+const addMeses = (s,n) => { const d=pISO(s); const dia=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+n); const ult=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); d.setDate(Math.min(dia,ult)); return iso(d); };
+const R$ = v => (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const uid = () => Math.random().toString(36).slice(2,9);
+const semAcento = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const MESES = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const MESES_BR = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const mesAno = s => { const d=pISO(s); return MESES_BR[d.getMonth()].slice(0,3)+'/'+String(d.getFullYear()).slice(2); };
+
+/* valor por extenso (contrato) */
+function extensoInt(n){
+  const u=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  const d=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  const c=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+  const ate999 = x => { if(x===100) return 'cem'; const p=[]; if(x>=100){p.push(c[Math.floor(x/100)]); x%=100;} if(x>=20){p.push(d[Math.floor(x/10)]); x%=10; if(x) p.push(u[x]);} else if(x) p.push(u[x]); return p.join(' e '); };
+  if(n===0) return 'zero';
+  const grupos=[]; let x=n; while(x>0){grupos.push(x%1000); x=Math.floor(x/1000);}
+  const nomes=[['',''],['mil','mil'],['milhão','milhões'],['bilhão','bilhões']];
+  const partes=[];
+  for(let i=grupos.length-1;i>=0;i--){ const g=grupos[i]; if(!g) continue;
+    let t = (i===1 && g===1) ? 'mil' : ate999(g) + (i ? ' '+nomes[i][g>1?1:0] : '');
+    partes.push({t,g,i}); }
+  return partes.map((p,k)=> (k>0 && (p.i===0) && (p.g<100 || p.g%100===0) ? 'e ' : '') + p.t).join(' ').replace(/\s+/g,' ').trim();
+}
+function extensoReais(v){
+  v = Math.round(Number(v)*100)/100; const r=Math.floor(v); const c=Math.round((v-r)*100);
+  let s=''; if(r){ s = extensoInt(r); s += (r%1000000===0 && r>=1000000 ? ' de' : '') + (r===1?' real':' reais'); }
+  if(c){ s += (s?' e ':'') + extensoInt(c) + (c===1?' centavo':' centavos'); }
+  return s || 'zero reais';
+}
+const valorContrato = v => v ? R$(v)+' ('+extensoReais(v)+')' : '';
+
+/* leitura de valores falados: "35 mil", "7 mil e 500", "R$ 1.281,82", "mil e duzentos" */
+const NUM_PAL = {um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,quatorze:14,catorze:14,quinze:15,dezesseis:16,dezessete:17,dezoito:18,dezenove:19,vinte:20,trinta:30,quarenta:40,cinquenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90,cem:100,cento:100,duzentos:200,trezentos:300,quatrocentos:400,quinhentos:500,seiscentos:600,setecentos:700,oitocentos:800,novecentos:900};
+function lerValor(txt){
+  let t = semAcento(txt).replace(/r\$\s*/g,' ').replace(/reais|real/g,' ');
+  // número com milhar e vírgula: 1.281,82 | 35.000 | 3467,69
+  t = t.replace(/(\d{1,3}(?:\.\d{3})+)(,\d{1,2})?/g, (m,a,b)=> a.replace(/\./g,'') + (b? '.'+b.slice(1):''));
+  t = t.replace(/(\d+),(\d{1,2})\b/g,'$1.$2');
+  const tokens = t.split(/[\s\-]+/).filter(Boolean);
+  let total=0, atual=0, achou=false, iniciou=false;
+  for(let i=0;i<tokens.length;i++){
+    const w = tokens[i];
+    if(/^\d+(\.\d+)?$/.test(w)){ if(iniciou && atual && !/^e$/.test(tokens[i-1]||'')) { if(achou) break; } atual += parseFloat(w); achou=iniciou=true; continue; }
+    if(NUM_PAL[w]!==undefined){ atual += NUM_PAL[w]; achou=iniciou=true; continue; }
+    if(w==='mil'){ total += (atual||1)*1000; atual=0; achou=iniciou=true; continue; }
+    if(w==='milhao'||w==='milhoes'){ total += (atual||1)*1e6; atual=0; achou=iniciou=true; continue; }
+    if(w==='e' && iniciou) continue;
+    if(w==='centavos' && iniciou){ continue; }
+    if(iniciou) break;
+  }
+  const v = total+atual; return achou ? Math.round(v*100)/100 : null;
+}
+function lerData(txt){
+  const t = semAcento(txt), h=new Date();
+  if(/\bhoje\b/.test(t)) return iso(h);
+  if(/\bamanha\b/.test(t)){ h.setDate(h.getDate()+1); return iso(h); }
+  if(/\bontem\b/.test(t)){ h.setDate(h.getDate()-1); return iso(h); }
+  let m = t.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if(m){ let y = m[3] ? (m[3].length===2 ? 2000+Number(m[3]) : Number(m[3])) : h.getFullYear(); return iso(new Date(y,Number(m[2])-1,Number(m[1]))); }
+  m = t.match(/(?:dia\s+)?(\d{1,2}|primeiro)(?:o|º)?\s+de\s+(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)/);
+  if(m){ const dia = m[1]==='primeiro'?1:Number(m[1]); const mes=MESES.indexOf(m[2]); let d=new Date(h.getFullYear(),mes,dia); if(d < new Date(h.getFullYear(),h.getMonth(),h.getDate()-60)) d.setFullYear(d.getFullYear()+1); return iso(d); }
+  m = t.match(/\bdia\s+(\d{1,2}|primeiro)\b/);
+  if(m){ const dia = m[1]==='primeiro'?1:Number(m[1]); let d=new Date(h.getFullYear(),h.getMonth(),dia); if(d<new Date(h.getFullYear(),h.getMonth(),h.getDate())) d.setMonth(d.getMonth()+1); return iso(d); }
+  return null;
+}
+
+/* ===================== dados ===================== */
+const CHAVE='mg_gestao_v1';
+let S = JSON.parse(localStorage.getItem(CHAVE)||'null') || semente();
+const salvar = () => localStorage.setItem(CHAVE, JSON.stringify(S));
+function semente(){
+  return {
+    versao:1,
+    empresa:{nome:'MG Locações Ltda',cnpj:'20.441.510/0001-01',rep:'',repCpf:'',whats:'',banco:'',multa:10,juros:1,advogado:'Wendley Steffan Ferreira dos Santos, OAB/PB 27.884'},
+    maquinas:[{id:'m1',nome:'Escavadeira Hyundai Robex R220LC-9S B',apelidos:'escavadeira robex hyundai 220 rompedor',serie:'',acessorios:'Caçamba (concha) e rompedor hidráulico com ponteira',valorRep:0,obs:''}],
+    clientes:[], contratos:[], lanc:[], hist:[]
+  };
+}
+const cli = id => S.clientes.find(c=>c.id===id) || {nome:'(sem cliente)'};
+const maq = id => S.maquinas.find(m=>m.id===id) || {nome:'(sem máquina)'};
+const pago = l => l.pag.reduce((a,p)=>a+p.valor,0);
+const saldo = l => Math.max(0, Math.round((l.valor - pago(l))*100)/100);
+const atraso = l => diasEntre(l.venc, hoje());
+function encargos(l){
+  const d = atraso(l), s = saldo(l);
+  if(d<=0 || !s || l.semContrato) return {multa:0,juros:0,total:s};
+  const multa = s*(S.empresa.multa/100), juros = s*(S.empresa.juros/100)*(d/30);
+  return {multa, juros, total: s+multa+juros};
+}
+/* régua de cobrança */
+function etapa(l){
+  const d = atraso(l);
+  if(saldo(l)<=0) return {k:'pago',t:'Pago',c:'ok'};
+  if(d < -3) return {k:'emdia',t:'A vencer',c:''};
+  if(d < 0) return {k:'lembrete',t:'Lembrete: vence em '+(-d)+' d',c:'y'};
+  if(d === 0) return {k:'hoje',t:'Vence hoje',c:'y'};
+  if(d < 5) return {k:'atraso',t:d+' d de atraso',c:'warn'};
+  if(d < 15) return {k:'suspensao',t:d+' d: aviso de suspensão',c:'warn'};
+  if(d < 30) return {k:'retomada',t:d+' d: retomada da máquina',c:'bad'};
+  return {k:'juridico',t:d+' d: encaminhar ao jurídico',c:'bad'};
+}
+function mensagem(l, k){
+  const c = cli(l.clienteId), e = encargos(l);
+  const base = `${l.desc}, vencimento ${br(l.venc)}, valor ${R$(saldo(l))}`;
+  const conta = `Pagamento: ${S.empresa.banco}.`;
+  const M = {
+    lembrete:`Olá! Aqui é da MG Locações. Passando para lembrar do vencimento: ${base}. ${conta} Obrigado!`,
+    hoje:`Bom dia! Hoje vence: ${base}. ${conta} Assim que pagar, por favor envie o comprovante. Obrigado!`,
+    emdia:`Olá! Segue a fatura: ${base}. ${conta}`,
+    atraso:`Olá. Não identificamos o pagamento de ${base}. Pedimos a regularização hoje e o envio do comprovante. ${conta}`,
+    suspensao:`Prezados, o pagamento de ${base} está em atraso há ${atraso(l)} dias. Conforme o contrato, se não houver pagamento em 48 horas, a operação do equipamento será suspensa, com o aluguel correndo normalmente. Valor atualizado: ${R$(e.total)}. ${conta}`,
+    retomada:`Prezados, o débito de ${base} está em atraso há ${atraso(l)} dias. Conforme o contrato, comunicamos a resolução da locação e a retirada do equipamento em 24 horas, sem prejuízo da cobrança de ${R$(e.total)}, multa e despesas. Pedimos franquear o acesso ao canteiro.`,
+    juridico:`Prezados, o débito de ${base} está em atraso há ${atraso(l)} dias e foi encaminhado à assessoria jurídica da MG Locações para protesto e cobrança judicial. Para evitar essas medidas, entre em contato hoje.`,
+    pago:`Recebemos o pagamento de ${l.desc}. Obrigado!`
+  };
+  return M[k||etapa(l).k];
+}
+const fone = f => { const d=String(f||'').replace(/\D/g,''); return d ? (d.length<=11 ? '55'+d : d) : ''; };
+const linkWa = (f,txt) => 'https://wa.me/'+fone(f)+'?text='+encodeURIComponent(txt);
+
+/* ===================== telas ===================== */
+let aba='inicio';
+function ir(t){ aba=t; document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); render(); scrollTo(0,0); }
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>ir(b.dataset.t));
+function render(){ $('#app').innerHTML = TELAS[aba](); }
+
+const TELAS = {
+inicio(){
+  const R = S.lanc.filter(l=>l.tipo==='R');
+  const vencido = R.filter(l=>saldo(l)>0 && atraso(l)>0).reduce((a,l)=>a+saldo(l),0);
+  const aVencer = R.filter(l=>saldo(l)>0 && atraso(l)<=0).reduce((a,l)=>a+saldo(l),0);
+  const m = hoje().slice(0,7);
+  const recMes = R.flatMap(l=>l.pag).filter(p=>p.data.startsWith(m)).reduce((a,p)=>a+p.valor,0);
+  const despMes = S.lanc.filter(l=>l.tipo==='D' && l.venc.startsWith(m)).reduce((a,l)=>a+l.valor,0);
+  const cobrarHoje = R.filter(l=>saldo(l)>0 && atraso(l)>=-3).sort((a,b)=>a.venc<b.venc?-1:1);
+  const ativos = S.contratos.filter(k=>k.status==='ativo');
+  return `
+  <div class="cards">
+    <div class="card bad"><div class="l">Vencido</div><div class="v">${R$(vencido)}</div></div>
+    <div class="card y"><div class="l">A vencer</div><div class="v">${R$(aVencer)}</div></div>
+    <div class="card ok"><div class="l">Recebido no mês</div><div class="v">${R$(recMes)}</div></div>
+    <div class="card"><div class="l">Lucro do mês</div><div class="v">${R$(recMes-despMes)}</div></div>
+  </div>
+  ${!S.clientes.length?'<div class="item" style="border-color:var(--y)"><b>Primeiro acesso?</b><div class="dica">Toque em Mais › Restaurar e escolha o arquivo de dados enviado pelo seu advogado. Depois preencha em Mais › Dados da MG o sócio, o CPF e a conta para pagamento.</div><div class="row"><button class="btn y s" onclick="ir('mais')">Ir para Mais</button></div></div>':''}<h3>Cobrar agora (${cobrarHoje.length})</h3>
+  ${cobrarHoje.length ? cobrarHoje.slice(0,6).map(itemCobranca).join('') + (cobrarHoje.length>6?`<button class="btn full" onclick="ir('cobrancas')">Ver todas</button>`:'') : '<div class="vazio">Nada para cobrar hoje.</div>'}
+  <h3>Contratos ativos (${ativos.length})</h3>
+  ${ativos.length ? ativos.map(itemContrato).join('') : '<div class="vazio">Nenhum contrato ativo. Toque no 🎤 e diga: <i>"novo contrato da escavadeira para a Construtora X, 35 mil por mês, 3 meses, a partir de dia 1º de dezembro"</i>.</div>'}
+  <h3>Comandos de voz</h3>
+  <div class="item dica">
+    <div>🎤 <code>recebi 35 mil da Construtora Alfa</code></div>
+    <div>🎤 <code>gastei 3.467 com ponteira do rompedor</code></div>
+    <div>🎤 <code>novo contrato da escavadeira para a Construtora Alfa, 35 mil por mês, 3 meses, a partir de 1º de dezembro</code></div>
+    <div>🎤 <code>quanto a Construtora Alfa me deve?</code></div>
+    <div>🎤 <code>cobrar a Construtora Alfa</code> · <code>anota que a Construtora Alfa prometeu pagar dia 30</code></div>
+  </div>`;
+},
+contratos(){
+  return `<h2>Contratos</h2>
+  <button class="btn y full" onclick="formContrato()">＋ Novo contrato</button>
+  <h3>Todos</h3>
+  ${S.contratos.slice().reverse().map(itemContrato).join('') || '<div class="vazio">Nenhum contrato.</div>'}
+  <div class="item dica">O contrato gerado segue o modelo blindado da MG (19 cláusulas): aluguel mínimo independente de medição, medição tácita em 3 dias úteis, caução, fiador solidário, multa de 10% e juros de 1% ao mês, suspensão com 5 dias de atraso, retomada da máquina com 15 dias, responsabilidade por danos, furto e roubo, peças de desgaste e foro em Campina Grande.</div>`;
+},
+cobrancas(){
+  const abertos = S.lanc.filter(l=>l.tipo==='R' && saldo(l)>0).sort((a,b)=>a.venc<b.venc?-1:1);
+  const porCli = {};
+  abertos.forEach(l=>{ (porCli[l.clienteId] ||= []).push(l); });
+  const ids = Object.keys(porCli);
+  return `<h2>Cobranças</h2>
+  <div class="row"><button class="btn s" onclick="exportarAgenda()">📅 Lembretes na agenda do celular</button><button class="btn s" onclick="pedirNotificacao()">🔔 Ativar avisos</button></div>
+  ${ids.length ? ids.map(id=>{
+    const ls=porCli[id], c=cli(id), tot=ls.reduce((a,l)=>a+saldo(l),0), atu=ls.reduce((a,l)=>a+encargos(l).total,0);
+    return `<h3>${esc(c.nome)}</h3>
+    <div class="item"><div class="top"><div><div class="nm">Em aberto</div><div class="sub">${ls.length} lançamento(s)${atu>tot?` · com encargos: ${R$(atu)}`:''}</div></div><div class="val">${R$(tot)}</div></div>
+    <div class="row"><button class="btn s" onclick="verCliente('${id}')">Ficha e histórico</button><button class="btn s" onclick="dossie('${id}')">📁 Dossiê para o advogado</button>${c.emails?`<button class="btn s" onclick="emailCobranca('${id}')">✉️ E-mail ao financeiro</button>`:''}</div></div>
+    ${ls.map(itemCobranca).join('')}`;
+  }).join('') : '<div class="vazio">Nenhum valor em aberto. 👏</div>'}`;
+},
+financeiro(){
+  const m = finMes || hoje().slice(0,7);
+  const R = S.lanc.filter(l=>l.tipo==='R');
+  const recs = R.flatMap(l=>l.pag.map(p=>({...p,l}))).filter(p=>p.data.startsWith(m));
+  const desps = S.lanc.filter(l=>l.tipo==='D' && l.venc.startsWith(m));
+  const tr = recs.reduce((a,p)=>a+p.valor,0), td = desps.reduce((a,l)=>a+l.valor,0);
+  const meses=[]; const d=pISO(m+'-01'); for(let i=5;i>=0;i--){ const x=new Date(d.getFullYear(),d.getMonth()-i,1); meses.push(iso(x).slice(0,7)); }
+  const serie = meses.map(mm=>({mm, r:R.flatMap(l=>l.pag).filter(p=>p.data.startsWith(mm)).reduce((a,p)=>a+p.valor,0), d:S.lanc.filter(l=>l.tipo==='D'&&l.venc.startsWith(mm)).reduce((a,l)=>a+l.valor,0)}));
+  const mx = Math.max(1,...serie.map(s=>Math.max(s.r,s.d)));
+  const faturado = R.filter(l=>l.ref && l.ref.startsWith(m)).reduce((a,l)=>a+l.valor,0);
+  return `<h2>Financeiro</h2>
+  <label>Mês</label><input type="month" value="${m}" onchange="finMes=this.value;render()">
+  <div class="cards" style="margin-top:10px">
+    <div class="card"><div class="l">Faturado (competência)</div><div class="v">${R$(faturado)}</div></div>
+    <div class="card ok"><div class="l">Recebido</div><div class="v">${R$(tr)}</div></div>
+    <div class="card bad"><div class="l">Despesas</div><div class="v">${R$(td)}</div></div>
+    <div class="card y"><div class="l">Resultado</div><div class="v">${R$(tr-td)}</div></div>
+  </div>
+  <h3>Últimos 6 meses</h3>
+  <div class="bar">${serie.map(s=>`<div><i class="r" style="height:${s.r/mx*100}%"></i><i class="d" style="height:${s.d/mx*100}%"></i></div>`).join('')}</div>
+  <div class="lbls">${serie.map(s=>`<span>${MESES_BR[Number(s.mm.slice(5))-1].slice(0,3)}</span>`).join('')}</div>
+  <div class="dica">■ <span style="color:var(--y)">recebido</span> · ■ despesas</div>
+  <h3>Por máquina (acumulado)</h3>
+  ${S.maquinas.map(mq=>{ const rec=R.filter(l=>l.maquinaId===mq.id).reduce((a,l)=>a+pago(l),0); const ab=R.filter(l=>l.maquinaId===mq.id).reduce((a,l)=>a+saldo(l),0); const de=S.lanc.filter(l=>l.tipo==='D'&&l.maquinaId===mq.id).reduce((a,l)=>a+l.valor,0);
+    return `<div class="item"><div class="nm">${esc(mq.nome)}</div><div class="sub">Recebido ${R$(rec)} · Em aberto ${R$(ab)} · Despesas ${R$(de)}</div><div class="tag ${rec-de>=0?'ok':'bad'}">Resultado ${R$(rec-de)}</div></div>`; }).join('')}
+  <div class="row"><button class="btn y" onclick="formLanc('D')">＋ Despesa</button><button class="btn" onclick="formLanc('R')">＋ Conta a receber</button><button class="btn" onclick="exportarCSV()">⬇️ Planilha (CSV)</button></div>
+  <h3>Movimento do mês</h3>
+  ${[...recs.map(p=>({d:p.data,t:'+ '+R$(p.valor),s:cli(p.l.clienteId).nome+' · '+p.l.desc,c:'ok'})), ...desps.map(l=>({d:l.venc,t:'− '+R$(l.valor),s:l.desc+(l.maquinaId?' · '+maq(l.maquinaId).nome:''),c:'bad',id:l.id}))].sort((a,b)=>a.d<b.d?1:-1).map(x=>`<div class="item"><div class="top"><div><div class="nm">${esc(x.s)}</div><div class="sub">${br(x.d)}</div></div><div class="val" style="color:${x.c==='ok'?'#6ee7a1':'#ff9a96'}">${x.t}</div></div>${x.id?`<div class="row"><button class="btn s" onclick="apagarLanc('${x.id}')">Excluir</button></div>`:''}</div>`).join('') || '<div class="vazio">Sem movimento neste mês.</div>'}`;
+},
+mais(){
+  return `<h2>Cadastros e ajustes</h2>
+  <h3>Máquinas</h3>
+  ${S.maquinas.map(m=>`<div class="item"><div class="nm">${esc(m.nome)}</div><div class="sub">${esc(m.serie||'')} · reposição ${R$(m.valorRep)}</div>${m.obs?`<div class="sub">⚠️ ${esc(m.obs)}</div>`:''}<div class="row"><button class="btn s" onclick="formMaquina('${m.id}')">Editar</button></div></div>`).join('')}
+  <button class="btn full" onclick="formMaquina()">＋ Máquina</button>
+  <h3>Clientes</h3>
+  ${S.clientes.map(c=>`<div class="item"><div class="nm">${esc(c.nome)}</div><div class="sub">${esc(c.cnpj||'')}</div><div class="row"><button class="btn s" onclick="verCliente('${c.id}')">Ficha</button><button class="btn s" onclick="formCliente('${c.id}')">Editar</button></div></div>`).join('')}
+  <button class="btn full" onclick="formCliente()">＋ Cliente</button>
+  <h3>Empresa</h3>
+  <button class="btn full" onclick="formEmpresa()">Dados da MG, conta e encargos</button>
+  <h3>Segurança dos dados</h3>
+  <div class="item dica">Os dados ficam só neste aparelho. Faça backup toda semana e guarde no WhatsApp ou no e-mail.</div>
+  <div class="row"><button class="btn y" onclick="backup()">⬇️ Fazer backup</button><label class="btn" style="margin:0;color:var(--t);font-size:14px">⬆️ Restaurar<input type="file" accept=".json" style="display:none" onchange="restaurar(this.files[0])"></label></div>
+  <button class="btn bad full" onclick="if(confirm('Apagar tudo e voltar aos dados iniciais?')){localStorage.removeItem(CHAVE);location.reload()}">Zerar o app</button>
+  <p class="dica" style="margin-top:18px">MG Gestão · app gratuito e offline. Assessoria jurídica: ${esc(S.empresa.advogado)}.</p>`;
+}
+};
+let finMes=null;
+
+function itemCobranca(l){
+  const e = etapa(l), c=cli(l.clienteId), enc=encargos(l);
+  return `<div class="item"><div class="top"><div><div class="nm">${esc(l.desc)}</div><div class="sub">${esc(c.nome)} · vence ${br(l.venc)}${pago(l)?' · pago '+R$(pago(l)):''}</div></div><div class="val">${R$(saldo(l))}</div></div>
+  <span class="tag ${e.c}">${e.t}</span>${enc.total>saldo(l)?` <span class="tag">atualizado ${R$(enc.total)}</span>`:''}${l.semContrato?' <span class="tag">sem contrato escrito</span>':''}
+  <div class="row"><a class="btn wa s" href="${linkWa(c.whats, mensagem(l))}" target="_blank" onclick="registrarContato('${l.id}')">WhatsApp</a><button class="btn ok s" onclick="formPagamento('${l.id}')">Recebi</button><button class="btn s" onclick="verMsg('${l.id}')">Ver mensagem</button></div></div>`;
+}
+function itemContrato(k){
+  const c=cli(k.clienteId), m=maq(k.maquinaId);
+  const ab = S.lanc.filter(l=>l.contratoId===k.id && l.tipo==='R').reduce((a,l)=>a+saldo(l),0);
+  return `<div class="item"><div class="top"><div><div class="nm">${esc(c.nome)}</div><div class="sub">${esc(k.numero)} · ${esc(m.nome)}<br>${br(k.inicio)} a ${br(k.fim)} · ${R$(k.valorMensal)}/mês ${k.operador?'· com operador':'· sem operador'}</div></div><div class="val">${ab?R$(ab):''}</div></div>
+  <span class="tag ${k.status==='ativo'?'ok':''}">${k.status}</span>${k.escrito===false?' <span class="tag bad">sem contrato escrito</span>':''}
+  <div class="row">${k.campos && k.campos.cli_razao?`<button class="btn s y" onclick="abrirContrato('${k.id}')">📄 Abrir contrato</button>`:''}${k.status==='ativo'?`<button class="btn s" onclick="encerrar('${k.id}')">Encerrar / devolução</button>`:''}</div></div>`;
+}
+
+/* ===================== modal e formulários ===================== */
+function abrir(html){ $('#mbox').innerHTML = html; $('#modal').classList.add('on'); }
+function fechar(){ $('#modal').classList.remove('on'); paraVoz(); }
+$('#modal').onclick = e => { if(e.target.id==='modal') fechar(); };
+function campo(id,rot,val='',tipo='text',extra=''){
+  if(tipo==='area') return `<label>${rot}</label><textarea id="f_${id}" ${extra}>${esc(val)}</textarea>`;
+  return `<label>${rot}</label><input id="f_${id}" type="${tipo}" value="${esc(val)}" ${extra}>`;
+}
+const fv = id => { const el=$('#f_'+id); return el ? el.value.trim() : ''; };
+const num = s => { const v = lerValor(s); return v==null ? 0 : v; };
+
+function formPagamento(id, valorSug){
+  const l = S.lanc.find(x=>x.id===id);
+  abrir(`<h2>Registrar recebimento</h2><div class="sub">${esc(cli(l.clienteId).nome)} · ${esc(l.desc)} · saldo ${R$(saldo(l))}</div>
+  ${campo('valor','Valor recebido (R$)', String(valorSug ?? saldo(l)).replace('.',','),'text','inputmode="decimal"')}
+  ${campo('data','Data',hoje(),'date')}
+  <button class="btn ok full" onclick="salvarPagamento('${id}')">Confirmar</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function salvarPagamento(id){
+  const l=S.lanc.find(x=>x.id===id); const v=num(fv('valor')); if(!v) return alert('Informe o valor.');
+  l.pag.push({data:fv('data')||hoje(),valor:v}); S.hist.push({id:uid(),clienteId:l.clienteId,data:hoje(),txt:`Recebido ${R$(v)} referente a ${l.desc}.`});
+  salvar(); fechar(); render(); avisar('Recebimento registrado ✅');
+}
+function pagarCliente(clienteId, valor, data){
+  let resto = valor; const abertos = S.lanc.filter(l=>l.tipo==='R' && l.clienteId===clienteId && saldo(l)>0).sort((a,b)=>a.venc<b.venc?-1:1);
+  const usados=[];
+  for(const l of abertos){ if(resto<=0) break; const p=Math.min(resto,saldo(l)); l.pag.push({data:data||hoje(),valor:Math.round(p*100)/100}); resto-=p; usados.push(l.desc); }
+  if(resto>0.009){ S.lanc.push({id:uid(),tipo:'R',clienteId,contratoId:'',maquinaId:'',desc:'Recebimento avulso',ref:hoje(),valor:Math.round(resto*100)/100,venc:data||hoje(),pag:[{data:data||hoje(),valor:Math.round(resto*100)/100}]}); usados.push('avulso'); }
+  S.hist.push({id:uid(),clienteId,data:hoje(),txt:`Recebido ${R$(valor)} (${usados.join('; ')}).`});
+  salvar();
+}
+function formLanc(tipo){
+  abrir(`<h2>${tipo==='D'?'Nova despesa':'Nova conta a receber'}</h2>
+  ${campo('desc','Descrição', tipo==='D'?'':'')}
+  ${campo('valor','Valor (R$)','','text','inputmode="decimal"')}
+  ${campo('venc',tipo==='D'?'Data':'Vencimento',hoje(),'date')}
+  <label>Máquina</label><select id="f_maq"><option value="">(nenhuma)</option>${S.maquinas.map(m=>`<option value="${m.id}">${esc(m.nome)}</option>`).join('')}</select>
+  ${tipo==='R'?`<label>Cliente</label><select id="f_cli">${S.clientes.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</select>`:''}
+  <button class="btn y full" onclick="salvarLanc('${tipo}')">Salvar</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function salvarLanc(tipo){
+  const v=num(fv('valor')); if(!v||!fv('desc')) return alert('Preencha descrição e valor.');
+  S.lanc.push({id:uid(),tipo,clienteId:tipo==='R'?fv('cli'):'',contratoId:'',maquinaId:fv('maq'),desc:fv('desc'),ref:fv('venc'),valor:v,venc:fv('venc'),pag:[]});
+  salvar(); fechar(); render(); avisar('Lançamento salvo ✅');
+}
+function apagarLanc(id){ if(confirm('Excluir este lançamento?')){ S.lanc=S.lanc.filter(l=>l.id!==id); salvar(); render(); } }
+function formCliente(id){
+  const c = S.clientes.find(x=>x.id===id) || {};
+  abrir(`<h2>${id?'Editar':'Novo'} cliente</h2>
+  ${campo('nome','Razão social / nome',c.nome)}${campo('cnpj','CNPJ / CPF',c.cnpj)}${campo('end','Endereço completo',c.end)}
+  <div class="grid2">${campo('rep','Representante',c.rep)}${campo('repCpf','CPF do representante',c.repCpf)}</div>
+  <div class="grid2">${campo('whats','WhatsApp de cobrança',c.whats,'tel')}${campo('emails','E-mails do financeiro',c.emails)}</div>
+  ${campo('contatos','Prepostos / contatos na obra',c.contatos,'area')}
+  ${campo('apelidos','Apelidos para o comando de voz',c.apelidos)}
+  ${campo('obs','Observações',c.obs,'area')}
+  <button class="btn y full" onclick="salvarCliente('${id||''}')">Salvar</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function salvarCliente(id){
+  if(!fv('nome')) return alert('Informe o nome.');
+  let c = S.clientes.find(x=>x.id===id); if(!c){ c={id:uid()}; S.clientes.push(c); }
+  ['nome','cnpj','end','rep','repCpf','whats','emails','contatos','apelidos','obs'].forEach(k=>c[k]=fv(k));
+  salvar(); fechar(); render(); return c;
+}
+function formMaquina(id){
+  const m = S.maquinas.find(x=>x.id===id) || {};
+  abrir(`<h2>${id?'Editar':'Nova'} máquina</h2>
+  ${campo('nome','Tipo, marca e modelo',m.nome)}${campo('serie','Nº de série / chassi e ano',m.serie)}
+  ${campo('acessorios','Acessórios',m.acessorios)}${campo('valorRep','Valor de reposição (R$)',m.valorRep?String(m.valorRep).replace('.',','):'','text','inputmode="decimal"')}
+  ${campo('apelidos','Apelidos para o comando de voz',m.apelidos)}${campo('obs','Observações (documento, financiamento)',m.obs,'area')}
+  <button class="btn y full" onclick="salvarMaquina('${id||''}')">Salvar</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function salvarMaquina(id){
+  if(!fv('nome')) return alert('Informe a máquina.');
+  let m = S.maquinas.find(x=>x.id===id); if(!m){ m={id:uid()}; S.maquinas.push(m); }
+  ['nome','serie','acessorios','apelidos','obs'].forEach(k=>m[k]=fv(k)); m.valorRep=num(fv('valorRep'));
+  salvar(); fechar(); render();
+}
+function formEmpresa(){
+  const e=S.empresa;
+  abrir(`<h2>Dados da MG</h2>
+  <div class="grid2">${campo('rep','Representante legal (sócio)',e.rep)}${campo('repCpf','CPF',e.repCpf)}</div>
+  ${campo('whats','WhatsApp da MG',e.whats)}${campo('banco','Conta para pagamento / PIX',e.banco,'area')}
+  <div class="grid2">${campo('multa','Multa por atraso (%)',e.multa,'number')}${campo('juros','Juros ao mês (%)',e.juros,'number')}</div>
+  ${campo('advogado','Advogado responsável',e.advogado)}
+  <button class="btn y full" onclick="salvarEmpresa()">Salvar</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function salvarEmpresa(){ const e=S.empresa; ['rep','repCpf','whats','banco','advogado'].forEach(k=>e[k]=fv(k)); e.multa=Number(fv('multa'))||0; e.juros=Number(fv('juros'))||0; salvar(); fechar(); render(); }
+
+function verCliente(id){
+  const c=cli(id); const h=S.hist.filter(x=>x.clienteId===id).sort((a,b)=>a.data<b.data?-1:1);
+  abrir(`<h2>${esc(c.nome)}</h2><div class="sub">${esc(c.cnpj||'')}<br>${esc(c.end||'')}</div>
+  ${c.contatos?`<h3>Contatos</h3><div class="dica">${esc(c.contatos)}</div>`:''}
+  ${c.emails?`<div class="dica">✉️ ${esc(c.emails)}</div>`:''}
+  ${c.obs?`<h3>Observações</h3><div class="dica">${esc(c.obs)}</div>`:''}
+  <h3>Histórico</h3><div class="timeline">${h.map(x=>`<div><b>${br(x.data)}</b> ${esc(x.txt)}</div>`).join('')||'<div class="dica">Sem registros.</div>'}</div>
+  ${campo('nota','Anotar contato / promessa de pagamento','','area')}
+  <button class="btn y full" onclick="anotar('${id}', fv('nota')); verCliente('${id}')">Salvar anotação</button>
+  <button class="btn full" onclick="dossie('${id}')">📁 Dossiê para o advogado</button><button class="btn full" onclick="fechar()">Fechar</button>`);
+}
+function anotar(id, txt){ if(!txt) return; S.hist.push({id:uid(),clienteId:id,data:hoje(),txt}); salvar(); avisar('Anotado ✅'); }
+function registrarContato(id){ const l=S.lanc.find(x=>x.id===id); S.hist.push({id:uid(),clienteId:l.clienteId,data:hoje(),txt:`Cobrança enviada por WhatsApp (${etapa(l).t}): ${l.desc}.`}); salvar(); }
+function verMsg(id){ const l=S.lanc.find(x=>x.id===id), c=cli(l.clienteId);
+  const ops=['lembrete','hoje','atraso','suspensao','retomada','juridico'];
+  abrir(`<h2>Mensagem de cobrança</h2><label>Etapa da régua</label><select id="f_et" onchange="$('#f_msg').value=mensagem(S.lanc.find(x=>x.id==='${id}'),this.value)">${ops.map(o=>`<option ${o===etapa(l).k?'selected':''} value="${o}">${o}</option>`).join('')}</select>
+  ${campo('msg','Texto (pode editar)',mensagem(l),'area','style="min-height:160px"')}
+  <button class="btn wa full" onclick="window.open(linkWa('${esc(c.whats)}', fv('msg')));registrarContato('${id}')">Enviar no WhatsApp</button>
+  <button class="btn full" onclick="navigator.clipboard.writeText(fv('msg'));avisar('Copiado')">Copiar</button><button class="btn full" onclick="fechar()">Fechar</button>`); }
+function emailCobranca(id){
+  const c=cli(id), ls=S.lanc.filter(l=>l.tipo==='R'&&l.clienteId===id&&saldo(l)>0);
+  const tot=ls.reduce((a,l)=>a+saldo(l),0);
+  const corpo=`Prezados,\n\nA MG Locações Ltda (CNPJ ${S.empresa.cnpj}) solicita a programação do pagamento dos valores abaixo, todos vencidos e sem pagamento até esta data:\n\n${ls.map(l=>`- ${l.desc}: ${R$(saldo(l))} (vencimento ${br(l.venc)})`).join('\n')}\n\nTotal em aberto: ${R$(tot)}.\n\nPagamento: ${S.empresa.banco}.\n\nPedimos retorno com data de pagamento em até 48 horas. Na falta de resposta, o débito será encaminhado à assessoria jurídica para as medidas de cobrança.\n\nAtenciosamente,\nMG Locações Ltda\n${S.empresa.whats}`;
+  location.href = 'mailto:'+c.emails.replace(/\s/g,'')+'?subject='+encodeURIComponent('MG Locações: valores em aberto ('+R$(tot)+')')+'&body='+encodeURIComponent(corpo);
+  S.hist.push({id:uid(),clienteId:id,data:hoje(),txt:`Cobrança por e-mail ao financeiro (${R$(tot)}).`}); salvar();
+}
+function dossie(id){
+  const c=cli(id), ls=S.lanc.filter(l=>l.tipo==='R'&&l.clienteId===id), ks=S.contratos.filter(k=>k.clienteId===id), h=S.hist.filter(x=>x.clienteId===id).sort((a,b)=>a.data<b.data?-1:1);
+  const ab=ls.filter(l=>saldo(l)>0), tot=ab.reduce((a,l)=>a+saldo(l),0);
+  const txt = `DOSSIÊ DE COBRANÇA · MG LOCAÇÕES\nGerado em ${br(hoje())}\n\nDEVEDOR: ${c.nome}\nCNPJ: ${c.cnpj||'-'}\nEndereço: ${c.end||'-'}\nContatos: ${c.contatos||'-'}\nE-mails: ${c.emails||'-'}\n\nCONTRATOS\n${ks.map(k=>`- ${k.numero}: ${maq(k.maquinaId).nome}, ${br(k.inicio)} a ${br(k.fim)}, ${R$(k.valorMensal)}/mês, ${k.operador?'com':'sem'} operador${k.escrito===false?' (SEM CONTRATO ESCRITO)':''}`).join('\n')||'-'}\n\nVALORES EM ABERTO\n${ab.map(l=>`- ${l.desc}: ${R$(saldo(l))}, vencido em ${br(l.venc)} (${Math.max(0,atraso(l))} dias)${l.obs?' · '+l.obs:''}`).join('\n')}\nTOTAL ORIGINAL EM ABERTO: ${R$(tot)}\n\nHISTÓRICO\n${h.map(x=>`${br(x.data)}: ${x.txt}`).join('\n')}\n\nObservações: ${c.obs||'-'}`;
+  abrir(`<h2>Dossiê para o advogado</h2>${campo('dos','',txt,'area','style="min-height:300px;font-size:12.5px"')}
+  <button class="btn y full" onclick="compartilhar('Dossiê ${esc(c.nome)}', fv('dos'))">Compartilhar</button><button class="btn full" onclick="navigator.clipboard.writeText(fv('dos'));avisar('Copiado')">Copiar</button><button class="btn full" onclick="fechar()">Fechar</button>`);
+}
+function compartilhar(titulo, texto){ if(navigator.share) navigator.share({title:titulo,text:texto}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(texto)); }
+function encerrar(id){ const k=S.contratos.find(x=>x.id===id); if(!confirm('Encerrar o contrato e registrar a devolução da máquina hoje?')) return; k.status='encerrado'; k.fim=hoje(); S.hist.push({id:uid(),clienteId:k.clienteId,data:hoje(),txt:`Contrato ${k.numero} encerrado; máquina devolvida.`}); salvar(); render(); }
+
+/* ===================== contrato ===================== */
+let rascunho = null;
+function formContrato(pre={}){
+  const c = pre.clienteId ? cli(pre.clienteId) : null;
+  rascunho = {operador: pre.operador ?? true};
+  const prox = (() => { const d=new Date(); return iso(new Date(d.getFullYear(),d.getMonth()+1,1)); })();
+  abrir(`<h2>Novo contrato</h2>
+  <label>Cliente</label><select id="f_cli" onchange="preencherCli(this.value)"><option value="">(novo cliente: preencha abaixo)</option>${S.clientes.map(x=>`<option value="${x.id}" ${pre.clienteId===x.id?'selected':''}>${esc(x.nome)}</option>`).join('')}</select>
+  ${campo('cli_razao','Razão social',c?c.nome:(pre.nomeNovo||''))}
+  <div class="grid2">${campo('cli_cnpj','CNPJ/CPF',c?.cnpj||'')}${campo('cli_whats','WhatsApp de cobrança',c?.whats||'','tel')}</div>
+  ${campo('cli_end','Endereço',c?.end||'')}
+  <div class="grid2">${campo('cli_rep','Representante',c?.rep||'')}${campo('cli_rep_cpf','CPF do representante',c?.repCpf||'')}</div>
+  ${campo('cli_email','E-mail de cobrança',c?.emails||'','email')}
+  ${campo('prepostos','Prepostos autorizados na obra (nome, função, telefone)',c?.contatos||'','area')}
+  <h3>Máquina e uso</h3>
+  <label>Máquina</label><select id="f_maq">${S.maquinas.map(m=>`<option value="${m.id}" ${pre.maquinaId===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select>
+  <label>Operação</label><div class="seg" id="segop"><button type="button" class="${rascunho.operador?'on':''}" onclick="setOp(true)">Com operador</button><button type="button" class="${rascunho.operador?'':'on'}" onclick="setOp(false)">Sem operador</button></div>
+  ${campo('local_obra','Local de uso (obra, cidade/UF, endereço)',pre.local||'')}
+  ${campo('atividade','Atividade declarada','Escavação, carga e desmonte de rocha com rompedor')}
+  <h3>Prazo e preço</h3>
+  <div class="grid2">${campo('inicio','Início',pre.inicio||prox,'date')}${campo('meses','Prazo mínimo (meses)',pre.meses||3,'number')}</div>
+  <div class="grid2">${campo('valor','Aluguel mensal (R$)',pre.valor?String(pre.valor).replace('.',','):'35.000,00','text','inputmode="decimal"')}${campo('franquia','Franquia de horas/mês','200','number')}</div>
+  <div class="grid2">${campo('hora','Hora excedente (R$)','175,00','text','inputmode="decimal"')}${campo('fds','Acréscimo fim de semana (%)','50','number')}</div>
+  <div class="grid2">${campo('diaria','Diária do operador (R$)','150,00','text','inputmode="decimal"')}${campo('mob','Mobilização por trecho (R$)','','text','inputmode="decimal" placeholder="ex.: 6.000,00"')}</div>
+  <div class="grid2">${campo('diavenc','Vencimento: dia do mês seguinte','10','number')}${campo('caucao','Caução (R$)',pre.valor?String(pre.valor).replace('.',','):'35.000,00','text','inputmode="decimal"')}</div>
+  <h3>Fiador (sócio da locatária)</h3>
+  <div class="grid2">${campo('fia_nome','Nome do fiador','')}${campo('fia_cpf','CPF do fiador','')}</div>
+  ${campo('fia_end','Endereço do fiador','')}
+  <div class="dica" style="margin-top:8px">Sem fiador e sem caução, a MG fica sem garantia. Se o cliente recusar os dois, peça ao menos o 1º mês adiantado.</div>
+  <button class="btn y full" onclick="gerarContrato()">Gerar contrato</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function setOp(v){ rascunho.operador=v; const b=document.querySelectorAll('#segop button'); b[0].classList.toggle('on',v); b[1].classList.toggle('on',!v); }
+function preencherCli(id){ const c=S.clientes.find(x=>x.id===id); if(!c) return; const m={cli_razao:c.nome,cli_cnpj:c.cnpj,cli_whats:c.whats,cli_end:c.end,cli_rep:c.rep,cli_rep_cpf:c.repCpf,cli_email:c.emails,prepostos:c.contatos}; for(const k in m){ const el=$('#f_'+k); if(el) el.value=m[k]||''; } }
+function dataExtenso(s){ const d=pISO(s); return d.getDate()+' de '+MESES_BR[d.getMonth()]+' de '+d.getFullYear(); }
+function gerarContrato(){
+  if(!fv('cli_razao')) return alert('Informe o cliente.');
+  let clienteId = fv('cli');
+  if(!clienteId){ const c={id:uid(),nome:fv('cli_razao'),cnpj:fv('cli_cnpj'),end:fv('cli_end'),rep:fv('cli_rep'),repCpf:fv('cli_rep_cpf'),whats:fv('cli_whats'),emails:fv('cli_email'),contatos:fv('prepostos'),apelidos:semAcento(fv('cli_razao')).split(' ').slice(0,2).join(' '),obs:''}; S.clientes.push(c); clienteId=c.id; }
+  const m = maq(fv('maq')), inicio=fv('inicio')||hoje(), meses=Math.max(1,parseInt(fv('meses'))||1), valor=num(fv('valor'));
+  if(!valor) return alert('Informe o valor mensal.');
+  const fim = (()=>{ const d=pISO(addMeses(inicio,meses)); d.setDate(d.getDate()-1); return iso(d); })();
+  const ano = new Date().getFullYear(); const seq = S.contratos.filter(k=>String(k.numero).startsWith('MG-'+ano)).length+1;
+  const numero = `MG-${ano}-${pad(seq).padStart(3,'0')}`;
+  const diaV = Math.min(28,Math.max(1,parseInt(fv('diavenc'))||10)), mob=num(fv('mob')), cau=num(fv('caucao'));
+  const campos = {
+    numero, cidade_data:'Campina Grande/PB, '+dataExtenso(hoje()), loc_rep:S.empresa.rep, loc_rep_cpf:S.empresa.repCpf,
+    cli_razao:fv('cli_razao'), cli_cnpj:fv('cli_cnpj'), cli_end:fv('cli_end'), cli_rep:fv('cli_rep'), cli_rep_cpf:fv('cli_rep_cpf'), cli_email:fv('cli_email'), cli_whats:fv('cli_whats'), prepostos:fv('prepostos'),
+    fia_nome:fv('fia_nome'), fia_cpf:fv('fia_cpf'), fia_end:fv('fia_end'), caucao: cau?valorContrato(cau):'Não exigida',
+    equip:m.nome, equip_serie:m.serie||'', acessorios:m.acessorios||'', valor_reposicao:valorContrato(m.valorRep),
+    local_obra:fv('local_obra'), atividade:fv('atividade'),
+    prazo_meses: meses+' ('+extensoInt(meses)+') '+(meses>1?'meses':'mês'), data_inicio:br(inicio), data_fim:br(fim),
+    valor_mensal:valorContrato(valor), franquia_horas:(fv('franquia')||'200')+' horas de horímetro',
+    valor_hora_extra:valorContrato(num(fv('hora'))), adicional_fds:(fv('fds')||'50')+'% sobre a hora excedente',
+    diaria_operador: rascunho.operador ? valorContrato(num(fv('diaria'))) : '', jornada: rascunho.operador ? 'segunda a sexta-feira, 7h às 17h, com 1h de intervalo' : '',
+    mobilizacao: mob ? 'por conta da LOCATÁRIA, '+valorContrato(mob)+' por trecho (ida e volta)' : 'por conta da LOCATÁRIA, pelo custo efetivo do transporte',
+    dia_vencimento: 'dia '+diaV+' do mês seguinte ao período medido', dados_bancarios:S.empresa.banco+', ou PIX CNPJ '+S.empresa.cnpj
+  };
+  const k = {id:uid(),numero,clienteId,maquinaId:m.id,operador:rascunho.operador,inicio,fim,valorMensal:valor,status:'ativo',escrito:true,campos};
+  S.contratos.push(k);
+  // agenda de recebíveis: um por mês do prazo mínimo
+  for(let i=0;i<meses;i++){
+    const ref = addMeses(inicio,i); const r=pISO(ref); const v = new Date(r.getFullYear(), r.getMonth()+1, diaV);
+    S.lanc.push({id:uid(),tipo:'R',clienteId,contratoId:k.id,maquinaId:m.id,desc:`${numero}: aluguel ${i+1}/${meses} (${mesAno(ref)})`,ref,valor,venc:iso(v),pag:[]});
+  }
+  if(cau) S.lanc.push({id:uid(),tipo:'R',clienteId,contratoId:k.id,maquinaId:m.id,desc:`${numero}: caução`,ref:inicio,valor:cau,venc:inicio,pag:[],obs:'Devolver ao fim da locação, descontados débitos.'});
+  if(mob) S.lanc.push({id:uid(),tipo:'R',clienteId,contratoId:k.id,maquinaId:m.id,desc:`${numero}: mobilização`,ref:inicio,valor:mob,venc:inicio,pag:[]});
+  S.hist.push({id:uid(),clienteId,data:hoje(),txt:`Contrato ${numero} gerado: ${m.nome}, ${R$(valor)}/mês, ${meses} mês(es) a partir de ${br(inicio)}.`});
+  salvar(); fechar(); render(); abrirContrato(k.id);
+}
+function textoContrato(k){
+  let t = CONTRATO;
+  t = t.replace(/\[op\]\n([\s\S]*?)\[\/op\]\n?/g, k.operador ? '$1' : '');
+  t = t.replace(/\[sop\]\n([\s\S]*?)\[\/sop\]\n?/g, k.operador ? '' : '$1');
+  return t;
+}
+function htmlContrato(k, paraWord){
+  const v = k.campos;
+  const ph = id => v[id] ? esc(v[id]) : `<span class="falta">____________________</span>`;
+  const neg = s => s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  let html = paraWord ? '<p style="font-weight:bold;font-size:14pt">MG LOCAÇÕES LTDA</p>' : '<div class="cab"><img src="logo.png" alt="MG Locações"></div>';
+  for(const linha of textoContrato(k).split('\n')){
+    if(!linha.trim()) continue;
+    const L = linha.replace(/\{\{(\w+)\}\}/g,(m,id)=>'\u0000'+id+'\u0001');
+    const fill = s => neg(esc(s)).replace(/\u0000(\w+)\u0001/g,(m,id)=>ph(id));
+    if(L.startsWith('#T ')) html += `<div class="t">${fill(L.slice(3))}</div>`;
+    else if(L.startsWith('#S ')) html += `<div class="s">${fill(L.slice(3))}</div>`;
+    else if(L.startsWith('#H ')) html += `<div class="h">${fill(L.slice(3))}</div>`;
+    else if(L.trim()==='#P') html += `<div class="pb"></div>`;
+    else if(L.trim()==='#Q'){
+      let g=null; html += '<p><b>QUADRO-RESUMO</b></p><table>';
+      for(const c of CAMPOS){ if(!k.operador && (c.id==='diaria_operador'||c.id==='jornada')) continue;
+        if(c.grupo!==g){ g=c.grupo; html += `<tr><td colspan="2" class="g">${esc(g.toUpperCase())}</td></tr>`; }
+        html += `<tr><td class="k">${esc(c.rot)}</td><td>${ph(c.id)}</td></tr>`; }
+      html += '</table>';
+    }
+    else if(L.trim()==='#A'){
+      for(const [papel,nome] of [['LOCADORA','MG LOCAÇÕES LTDA'],['LOCATÁRIA',v.cli_razao||''],['FIADOR E DEVEDOR SOLIDÁRIO',v.fia_nome||'']])
+        html += `<div class="ass">______________________________________________<br>${esc(nome)}<br>${papel}</div>`;
+      html += `<p style="margin-top:24px;font-size:11px">Testemunhas (dispensadas se a assinatura for eletrônica):<br>1. ______________________ CPF ____________ &nbsp; 2. ______________________ CPF ____________</p>`;
+    }
+    else html += `<p class="${/^[a-z]\) |^\[ \]/.test(L)?'ind':''}">${fill(L)}</p>`;
+  }
+  return html;
+}
+function abrirContrato(id){
+  const k = S.contratos.find(x=>x.id===id); const c=cli(k.clienteId);
+  $('#papel').innerHTML = htmlContrato(k);
+  const resumo = `Olá! Segue o contrato de locação ${k.numero} da MG Locações (${maq(k.maquinaId).nome}, ${R$(k.valorMensal)}/mês, início ${br(k.inicio)}). Por favor, confira e assine pelo gov.br (assinatura eletrônica gratuita) e devolva o PDF assinado por aqui.`;
+  $('#docacoes').innerHTML = `<button class="btn y s" onclick="window.print()">🖨️ PDF / imprimir</button><button class="btn s" onclick="baixarWord('${id}')">⬇️ Word</button><a class="btn wa s" target="_blank" href="${linkWa(c.whats,resumo)}">Enviar no WhatsApp</a><a class="btn s" target="_blank" href="https://www.gov.br/governodigital/pt-br/identidade/assinatura-eletronica">✍️ Assinar grátis (gov.br)</a><button class="btn s" onclick="$('#doc').classList.remove('on')">✕ Fechar</button>`;
+  $('#doc').classList.add('on'); $('#doc').scrollTop=0;
+}
+function baixarWord(id){
+  const k=S.contratos.find(x=>x.id===id);
+  const css = `body{font-family:Arial;font-size:11pt}.t{text-align:center;font-weight:bold;font-size:14pt}.s{text-align:center;font-weight:bold;color:#5A6270}.h{font-weight:bold;margin-top:12pt;border-left:4pt solid #F5A60A;padding-left:6pt}p{text-align:justify}td{border:1px solid #999;padding:3pt;font-size:9pt}td.g{background:#1B1F26;color:#FFC21A;font-weight:bold}td.k{background:#FFF4D6}table{border-collapse:collapse;width:100%}.ass{text-align:center;margin-top:30pt}`;
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>${css}</style></head><body>${htmlContrato(k,true)}</body></html>`;
+  baixar(new Blob(['﻿'+html],{type:'application/msword'}), `Contrato ${k.numero} - ${cli(k.clienteId).nome}.doc`);
+}
+function baixar(blob,nome){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nome; document.body.appendChild(a); a.click(); a.remove(); }
+
+/* ===================== agenda, avisos, backup ===================== */
+function exportarAgenda(){
+  const ls = S.lanc.filter(l=>l.tipo==='R' && saldo(l)>0 && atraso(l)<=0);
+  if(!ls.length) return alert('Não há vencimentos futuros em aberto.');
+  const d = s => s.replace(/-/g,'');
+  let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MG Gestao//PT-BR\r\n';
+  ls.forEach(l=>{ ics += `BEGIN:VEVENT\r\nUID:${l.id}@mggestao\r\nDTSTAMP:${d(hoje())}T090000\r\nDTSTART;VALUE=DATE:${d(l.venc)}\r\nSUMMARY:Cobrar ${cli(l.clienteId).nome.slice(0,40)}: ${R$(saldo(l))}\r\nDESCRIPTION:${l.desc}\r\nBEGIN:VALARM\r\nTRIGGER:-P3D\r\nACTION:DISPLAY\r\nDESCRIPTION:Vence em 3 dias\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:PT9H\r\nACTION:DISPLAY\r\nDESCRIPTION:Vence hoje\r\nEND:VALARM\r\nEND:VEVENT\r\n`; });
+  ics += 'END:VCALENDAR';
+  baixar(new Blob([ics],{type:'text/calendar'}),'vencimentos-MG.ics');
+  avisar('Abra o arquivo para adicionar os lembretes à agenda');
+}
+function pedirNotificacao(){ if(!('Notification' in window)) return alert('Este aparelho não suporta avisos. Use os lembretes na agenda.'); Notification.requestPermission().then(p=>{ if(p==='granted'){ avisar('Avisos ativados'); notificarHoje(true); } }); }
+function notificarHoje(forcar){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  if(!forcar && localStorage.getItem('mg_notif')===hoje()) return;
+  const ls = S.lanc.filter(l=>l.tipo==='R' && saldo(l)>0 && atraso(l)>=-3);
+  if(!ls.length) return;
+  const tot = ls.reduce((a,l)=>a+saldo(l),0);
+  try{ new Notification('MG Gestão: cobrar hoje', {body:`${ls.length} cobrança(s), total ${R$(tot)}`, icon:'icone-192.png'}); }catch(e){}
+  localStorage.setItem('mg_notif', hoje());
+}
+function backup(){ baixar(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}), `backup-mg-gestao-${hoje()}.json`); }
+function restaurar(f){ if(!f) return; f.text().then(t=>{ try{ const d=JSON.parse(t); if(!d.lanc||!d.clientes) throw 0; S=d; salvar(); render(); avisar('Backup restaurado ✅'); }catch(e){ alert('Arquivo inválido.'); } }); }
+function exportarCSV(){
+  const linhas=[['tipo','cliente','maquina','descricao','referencia','vencimento','valor','pago','saldo']];
+  S.lanc.forEach(l=>linhas.push([l.tipo==='R'?'receber':'despesa',cli(l.clienteId).nome||'',maq(l.maquinaId).nome||'',l.desc,l.ref||'',l.venc,String(l.valor).replace('.',','),String(pago(l)).replace('.',','),String(l.tipo==='R'?saldo(l):0).replace('.',',')]));
+  baixar(new Blob(['﻿'+linhas.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n')],{type:'text/csv'}),`financeiro-mg-${hoje()}.csv`);
+}
+function avisar(t){ const d=document.createElement('div'); d.textContent=t; d.style.cssText='position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#FFC21A;color:#1B1F26;font-weight:700;padding:10px 16px;border-radius:10px;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.4)'; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
+
+/* ===================== voz ===================== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec=null, ouvindo=false;
+function abrirVoz(){
+  abrir(`<h2>🎤 Fale o comando</h2>
+  <div class="ouvido" id="ouvido">${SR?'Ouvindo...':'Seu navegador não tem reconhecimento de voz. Digite o comando ou use o microfone do teclado.'}</div>
+  <textarea id="f_cmd" placeholder="ou digite: recebi 35 mil da Construtora Alfa"></textarea>
+  <div class="row"><button class="btn y" onclick="interpretarTela()">Entender</button>${SR?'<button class="btn" onclick="ouvir()">🎤 Falar de novo</button>':''}<button class="btn" onclick="fechar()">Fechar</button></div>
+  <div id="entendi"></div>
+  <p class="dica">Exemplos: <code>recebi 7 mil da Construtora Alfa</code> · <code>gastei 1.200 com mangueira da escavadeira</code> · <code>novo contrato para Construtora Alfa, 35 mil por mês, 3 meses, a partir de 1º de dezembro</code> · <code>quanto a Construtora Alfa deve</code></p>`);
+  if(SR) ouvir();
+}
+function ouvir(){
+  if(!SR) return; paraVoz();
+  rec = new SR(); rec.lang='pt-BR'; rec.interimResults=true; rec.continuous=false;
+  let final='';
+  rec.onresult = e => { let tmp=''; for(let i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) final+=e.results[i][0].transcript; else tmp+=e.results[i][0].transcript; } $('#ouvido').textContent = final+tmp; $('#f_cmd').value = (final+tmp).trim(); };
+  rec.onerror = e => { $('#ouvido').textContent = e.error==='not-allowed' ? 'Permita o uso do microfone para este site.' : 'Não entendi. Tente de novo ou digite.'; };
+  rec.onend = () => { ouvindo=false; $('#mic').classList.remove('ouvindo'); if(final.trim()) interpretarTela(); };
+  rec.start(); ouvindo=true; $('#mic').classList.add('ouvindo'); $('#ouvido').textContent='Ouvindo...';
+}
+function paraVoz(){ try{ rec && rec.abort(); }catch(e){} ouvindo=false; $('#mic').classList.remove('ouvindo'); }
+$('#mic').onclick = abrirVoz;
+function falar(t){ try{ const u=new SpeechSynthesisUtterance(t); u.lang='pt-BR'; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+
+const PARADAS = new Set(['de','da','do','das','dos','e','ltda','me','eireli','sa','construcoes','construtora','servicos','engenharia','conservacao','viaria','comercio','empresa','para','com','a','o']);
+function acharCliente(t){
+  let melhor=null, nota=0;
+  for(const c of S.clientes){
+    const termos = new Set([...semAcento(c.nome).split(/\W+/), ...semAcento(c.apelidos||'').split(/\s+/)].filter(w=>w.length>2 && !PARADAS.has(w)));
+    let n=0; termos.forEach(w=>{ if(new RegExp('\\b'+w+'\\b').test(t)) n += w.length; });
+    if(n>nota){ nota=n; melhor=c; }
+  }
+  return melhor;
+}
+function acharMaquina(t){
+  let melhor=null, nota=0;
+  for(const m of S.maquinas){ const termos=new Set([...semAcento(m.nome).split(/\W+/),...semAcento(m.apelidos||'').split(/\s+/)].filter(w=>w.length>2)); let n=0; termos.forEach(w=>{ if(t.includes(w)) n+=w.length; }); if(n>nota){nota=n;melhor=m;} }
+  return melhor;
+}
+function interpretar(txt){
+  const t = semAcento(txt);
+  const c = acharCliente(t), m = acharMaquina(t), v = lerValor(txt), d = lerData(txt);
+  if(/novo contrato|fazer (um )?contrato|gerar (um )?contrato|contrato novo|criar (um )?contrato/.test(t)){
+    const mm = t.match(/(\d+|um|dois|tres|quatro|cinco|seis|doze)\s+mes/); const pal={um:1,dois:2,tres:3,quatro:4,cinco:5,seis:6,doze:12};
+    const meses = mm ? (pal[mm[1]] || Number(mm[1])) : null;
+    const vm = (()=>{ const p = t.match(/([\d\.,]+\s*(?:mil)?(?:\s+e\s+[\d\.,]+)?|[a-z]+\s+mil)\s*(?:reais)?\s*(?:por|ao|o)\s*mes/); return p ? lerValor(p[1]) : v; })();
+    const nomeNovo = c ? '' : ((txt.match(/(?:para|pra|com) (?:a |o )?([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^,]+?)(?:,|$| \d)/) || [])[1] || '').trim();
+    const local = ((txt.match(/(?:na obra|em|no local)\s+(?:de\s+)?([^,]+?)(?:,|$)/i)||[])[1]||'');
+    return {acao:'contrato', resumo:`Abrir novo contrato${c?' para '+c.nome:(nomeNovo?' para '+nomeNovo:'')}${m?', '+m.nome:''}${vm?', '+R$(vm)+'/mês':''}${meses?', '+meses+' mês(es)':''}${d?', início '+br(d):''}.`, run:()=>formContrato({clienteId:c?.id, maquinaId:m?.id, valor:vm, meses, inicio:d, nomeNovo, local:''})};
+  }
+  if(/quanto .*(deve|devendo)|saldo|quanto .*receber|quem (me )?deve/.test(t)){
+    const ls = S.lanc.filter(l=>l.tipo==='R' && saldo(l)>0 && (!c || l.clienteId===c.id));
+    const tot = ls.reduce((a,l)=>a+saldo(l),0), venc = ls.filter(l=>atraso(l)>0).reduce((a,l)=>a+saldo(l),0);
+    const frase = c ? `${c.nome.split(' ')[0]} deve ${R$(tot)}, dos quais ${R$(venc)} já vencidos.` : `Você tem ${R$(tot)} a receber, sendo ${R$(venc)} vencidos.`;
+    return {acao:'saldo', resumo:frase, run:()=>{ falar(frase); fechar(); if(c) verCliente(c.id); else ir('cobrancas'); }};
+  }
+  if(/\b(recebi|recebemos|recebido|caiu|entrou|pagou|pagaram|depositou|depositaram|transferiu|mandou o pix)\b/.test(t)){
+    if(!v) return {erro:'Não entendi o valor. Ex.: "recebi 35 mil da Construtora Alfa".'};
+    if(!c) return {erro:'Não identifiquei o cliente. Diga o nome como está no cadastro.'};
+    return {acao:'receber', resumo:`Registrar recebimento de ${R$(v)} de ${c.nome}${d?' em '+br(d):''}, abatendo das parcelas mais antigas.`, run:()=>{ pagarCliente(c.id, v, d); fechar(); render(); avisar('Recebimento registrado ✅'); falar('Recebimento registrado'); }};
+  }
+  if(/\b(gastei|paguei|despesa|comprei|gasto|conserto|consertei|manutencao|abasteci|troquei)\b/.test(t)){
+    if(!v) return {erro:'Não entendi o valor da despesa.'};
+    const desc = (txt.match(/(?:com|de|no|na|em)\s+(.+)$/i)||[])[1] || txt;
+    return {acao:'despesa', resumo:`Lançar despesa de ${R$(v)}: "${desc.trim()}"${m?' na '+m.nome:''}${d?', em '+br(d):''}.`, run:()=>{ S.lanc.push({id:uid(),tipo:'D',clienteId:'',contratoId:'',maquinaId:m?.id||'',desc:desc.trim().replace(/^./,x=>x.toUpperCase()),ref:d||hoje(),valor:v,venc:d||hoje(),pag:[]}); salvar(); fechar(); render(); avisar('Despesa lançada ✅'); }};
+  }
+  if(/\b(cobra|cobrar|cobranca|manda cobranca)\b/.test(t)){
+    if(!c) return {erro:'Quem devo cobrar? Diga o nome do cliente.'};
+    const l = S.lanc.filter(x=>x.tipo==='R'&&x.clienteId===c.id&&saldo(x)>0).sort((a,b)=>a.venc<b.venc?-1:1)[0];
+    if(!l) return {erro:c.nome+' não tem valores em aberto.'};
+    return {acao:'cobrar', resumo:`Abrir a mensagem de cobrança para ${c.nome} (${etapa(l).t}).`, run:()=>verMsg(l.id)};
+  }
+  if(/\b(anota|anotar|registra|registrar|lembrete|lembrar|prometeu)\b/.test(t)){
+    if(!c) return {erro:'Anotar para qual cliente? Diga o nome.'};
+    const nota = txt.replace(/^\s*(anota(r)?|registra(r)?)( que)?\s*/i,'');
+    return {acao:'nota', resumo:`Anotar no histórico de ${c.nome}: "${nota}"`, run:()=>{ anotar(c.id, nota); fechar(); }};
+  }
+  if(/novo cliente|cadastra(r)? (o |um )?cliente/.test(t)){
+    const nome = txt.replace(/.*cliente\s*/i,'');
+    return {acao:'cliente', resumo:`Cadastrar cliente "${nome}".`, run:()=>{ formCliente(); setTimeout(()=>{ $('#f_nome').value=nome; },50); }};
+  }
+  return {erro:'Não entendi o comando. Tente começar com: recebi, gastei, novo contrato, quanto deve, cobrar ou anota.'};
+}
+function interpretarTela(){
+  const txt = $('#f_cmd').value.trim(); if(!txt) return;
+  const r = interpretar(txt); window._acao = r;
+  $('#entendi').innerHTML = r.erro ? `<div class="entendi">🤔 ${esc(r.erro)}</div>` : `<div class="entendi"><b>Entendi:</b> ${esc(r.resumo)}<div class="row"><button class="btn y" onclick="window._acao.run()">✔ Confirmar</button><button class="btn" onclick="$('#entendi').innerHTML=''">Corrigir</button></div></div>`;
+}
+
+/* ===================== início ===================== */
+if(!localStorage.getItem(CHAVE)) salvar();
+render(); notificarHoje();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
