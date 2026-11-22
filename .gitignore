@@ -1,0 +1,5 @@
+*.bak
+*.json.local
+*dados*.json
+.DS_Store
+Thumbs.db

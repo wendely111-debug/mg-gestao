@@ -21,11 +21,12 @@ var CAMPOS = [
   {"id":"fia_nome","rot":"Fiador e devedor solidário","grupo":"Garantias","ex":""},
   {"id":"fia_cpf","rot":"CPF do fiador","grupo":"Garantias","ex":""},
   {"id":"fia_end","rot":"Endereço do fiador","grupo":"Garantias","ex":""},
+  {"id":"fia_conjuge","rot":"Estado civil do fiador e cônjuge anuente (nome e CPF)","grupo":"Garantias","ex":""},
   {"id":"caucao","rot":"Caução em dinheiro","grupo":"Garantias","ex":"R$ 35.000,00 (trinta e cinco mil reais)"},
-  {"id":"equip","rot":"Equipamento (tipo, marca, modelo)","grupo":"Equipamento","ex":"Escavadeira hidráulica Hyundai Robex R220LC-9S B"},
-  {"id":"equip_serie","rot":"Nº de série / chassi e ano","grupo":"Equipamento","ex":"HBRR220CVN0007609, ano 2022"},
-  {"id":"acessorios","rot":"Acessórios entregues","grupo":"Equipamento","ex":"Caçamba (concha) e rompedor hidráulico com ponteira"},
-  {"id":"valor_reposicao","rot":"Valor de reposição do equipamento","grupo":"Equipamento","ex":"R$ 510.000,00 (quinhentos e dez mil reais)"},
+  {"id":"equip","rot":"Equipamento (tipo, marca, modelo)","grupo":"Equipamento","ex":""},
+  {"id":"equip_serie","rot":"Nº de série / chassi e ano","grupo":"Equipamento","ex":""},
+  {"id":"acessorios","rot":"Acessórios entregues","grupo":"Equipamento","ex":""},
+  {"id":"valor_reposicao","rot":"Valor de reposição do equipamento","grupo":"Equipamento","ex":""},
   {"id":"local_obra","rot":"Local de uso (obra/endereço)","grupo":"Uso","ex":""},
   {"id":"atividade","rot":"Atividade declarada","grupo":"Uso","ex":"Escavação e desmonte de rocha com rompedor"},
   {"id":"prazo_meses","rot":"Prazo mínimo (meses)","grupo":"Prazo e preço","ex":"3 (três)"},
@@ -57,9 +58,10 @@ var CONTRATO = `#T CONTRATO DE LOCAÇÃO DE EQUIPAMENTO PESADO
 #H CLÁUSULA 1ª. DAS PARTES E DO QUADRO-RESUMO
 **LOCADORA:** MG LOCAÇÕES LTDA, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 20.441.510/0001-01, com sede na Rua Raimundo da Silva Ribeiro, nº 445, Tambor, Campina Grande/PB, CEP 58414-650, neste ato representada por {{loc_rep}}, CPF nº {{loc_rep_cpf}}.
 **LOCATÁRIA:** {{cli_razao}}, inscrita no CNPJ/CPF sob o nº {{cli_cnpj}}, com sede em {{cli_end}}, neste ato representada por {{cli_rep}}, CPF nº {{cli_rep_cpf}}.
-**FIADOR E DEVEDOR SOLIDÁRIO:** {{fia_nome}}, CPF nº {{fia_cpf}}, residente em {{fia_end}}.
+**FIADOR E DEVEDOR SOLIDÁRIO:** {{fia_nome}}, CPF nº {{fia_cpf}}, residente em {{fia_end}}, estado civil e cônjuge: {{fia_conjuge}}.
 1.1. O Quadro-Resumo acima integra este contrato. Havendo divergência, prevalecem os valores, datas e dados do Quadro-Resumo e, em tudo o mais, as cláusulas gerais.
 1.2. As partes declaram que este é um contrato empresarial, paritário e simétrico, negociado livremente, e que cada cláusula foi lida e compreendida, aplicando-se o art. 421-A do Código Civil.
+1.3. A LOCATÁRIA declara que usará o EQUIPAMENTO como insumo de sua atividade empresarial ou profissional, e não como destinatária final.
 
 #H CLÁUSULA 2ª. DO OBJETO
 2.1. A LOCADORA dá em locação à LOCATÁRIA o equipamento descrito no Quadro-Resumo, com os acessórios ali listados (o "EQUIPAMENTO"), para uso exclusivo no local de uso e na atividade declarados no Quadro-Resumo.
@@ -103,16 +105,19 @@ var CONTRATO = `#T CONTRATO DE LOCAÇÃO DE EQUIPAMENTO PESADO
 
 #H CLÁUSULA 7ª. DAS GARANTIAS
 7.1. **Caução.** A LOCATÁRIA depositará, antes da mobilização, a caução em dinheiro prevista no Quadro-Resumo. A LOCADORA poderá usá-la para cobrir qualquer débito vencido, e a LOCATÁRIA deverá recompô-la em 5 (cinco) dias. A caução, sem juros, será devolvida em até 10 (dez) dias após a devolução do EQUIPAMENTO e a quitação de todas as obrigações, descontados os débitos existentes.
-7.2. **Fiança e solidariedade.** O FIADOR assina este contrato como devedor solidário e principal pagador de todas as obrigações da LOCATÁRIA, inclusive aluguéis, horas excedentes, encargos de mora, multas, indenizações por danos ou perda do EQUIPAMENTO e despesas de cobrança, até a efetiva devolução do EQUIPAMENTO e a quitação integral, ainda que o contrato seja prorrogado. O FIADOR renuncia aos benefícios dos arts. 827, 835 e 838 do Código Civil.
+7.2. **Fiança e solidariedade.** O FIADOR assina este contrato como devedor solidário e principal pagador de todas as obrigações da LOCATÁRIA, inclusive aluguéis, horas excedentes, encargos de mora, multas, indenizações por danos ou perda do EQUIPAMENTO e despesas de cobrança, até a efetiva devolução do EQUIPAMENTO e a quitação integral, e renuncia ao benefício de ordem (art. 828, I, do Código Civil).
+7.2.1. A fiança se prorroga automaticamente com a prorrogação da locação prevista na Cláusula 3.2. O FIADOR só se exonera por notificação à LOCADORA, na forma do art. 835 do Código Civil, e continua responsável por todas as obrigações até 60 (sessenta) dias depois de recebida a notificação. Nesse caso, a LOCATÁRIA apresentará novo fiador ou caução equivalente em 15 (quinze) dias, sob pena de resolução do contrato.
+7.2.2. O reajuste, a cobrança de horas excedentes e a prorrogação previstos neste contrato não são aditamento. Qualquer outra alteração das obrigações deverá ser assinada também pelo FIADOR.
+7.2.3. Sendo o FIADOR casado ou em união estável, salvo no regime da separação absoluta de bens, o cônjuge ou companheiro assina este contrato para autorizar a fiança (art. 1.647, III, do Código Civil).
 7.3. **Consórcio e grupo.** Se a LOCATÁRIA for consórcio, todas as empresas consorciadas assinam este contrato e respondem solidariamente por todas as obrigações dele decorrentes, nos termos do art. 265 do Código Civil e do art. 278, § 1º, da Lei nº 6.404/1976. A empresa que emitir medição, receber fatura ou se beneficiar do EQUIPAMENTO responde solidariamente com a LOCATÁRIA.
 7.4. **Título executivo.** As partes reconhecem este contrato como título executivo extrajudicial (art. 784, III e § 4º, do Código de Processo Civil), pelo qual são líquidos, certos e exigíveis o aluguel mensal mínimo, a mobilização e desmobilização, as multas e os encargos aqui previstos. As horas excedentes se provam pelas medições aprovadas, expressa ou tacitamente, na forma da Cláusula 5ª.
 
 #H CLÁUSULA 8ª. DA MORA, DA SUSPENSÃO E DA RETOMADA DO EQUIPAMENTO
-8.1. O atraso no pagamento sujeita a LOCATÁRIA, independentemente de aviso, a: multa moratória de 10% (dez por cento) sobre o valor em atraso; juros de mora de 1% (um por cento) ao mês, calculados dia a dia; correção monetária pelo IPCA/IBGE (art. 389, parágrafo único, do Código Civil); e, havendo cobrança por advogado, honorários de 10% (dez por cento) na fase extrajudicial e de 20% (vinte por cento) na judicial (arts. 389 e 395 do Código Civil), sem prejuízo dos honorários de sucumbência.
-8.2. Com atraso superior a 5 (cinco) dias, a LOCADORA poderá, após aviso por e-mail ou WhatsApp com 48 (quarenta e oito) horas de antecedência, suspender a operação, recolher o operador, se houver, e manter o EQUIPAMENTO parado e travado no canteiro até a regularização (art. 476 do Código Civil). O aluguel continua correndo durante a suspensão, pois o EQUIPAMENTO segue alocado à LOCATÁRIA e indisponível para outros clientes.
+8.1. O atraso no pagamento sujeita a LOCATÁRIA, independentemente de aviso, a: multa moratória de 10% (dez por cento) sobre o valor em atraso; juros de mora de 1% (um por cento) ao mês, calculados dia a dia; correção monetária pelo IPCA/IBGE (art. 389, parágrafo único, do Código Civil); e, havendo cobrança por advogado, honorários de 10% (dez por cento) na fase extrajudicial e de 20% (vinte por cento) na judicial (arts. 389 e 395 do Código Civil), sem prejuízo dos honorários de sucumbência. Se a relação vier a ser reconhecida como de consumo, a multa moratória fica reduzida a 2% (dois por cento).
+8.2. Com atraso superior a 5 (cinco) dias, a LOCADORA poderá, após aviso por e-mail ou WhatsApp com 48 (quarenta e oito) horas de antecedência, suspender a operação, recolher o operador, se houver, e manter o EQUIPAMENTO parado e travado no canteiro até a regularização (art. 476 do Código Civil). O travamento remoto só será acionado com o EQUIPAMENTO parado e sem risco a pessoas ou à obra. O aluguel continua correndo durante a suspensão, pois o EQUIPAMENTO segue alocado à LOCATÁRIA e indisponível para outros clientes.
 8.3. Com atraso superior a 15 (quinze) dias, ou diante de violação das Cláusulas 2ª, 10ª ou 11ª, o contrato poderá ser resolvido de pleno direito pela LOCADORA, mediante simples comunicação escrita, nos termos do art. 474 do Código Civil. Nesse caso:
 a) a LOCATÁRIA deve restituir o EQUIPAMENTO em 24 (vinte e quatro) horas, franqueando à LOCADORA, a seus prepostos e transportadores o acesso ao canteiro, com apoio para carregamento;
-b) a LOCADORA fica autorizada a retirar o EQUIPAMENTO por seus próprios meios, correndo os custos de desmobilização por conta da LOCATÁRIA;
+b) a LOCATÁRIA autoriza desde já o ingresso da LOCADORA no canteiro para retirar o EQUIPAMENTO de forma pacífica, correndo os custos de desmobilização por sua conta. Havendo qualquer oposição no local, a LOCADORA não forçará a retirada e pedirá a reintegração de posse;
 c) a recusa ou o embaraço à retirada configura esbulho e autoriza a reintegração de posse com pedido liminar, e a LOCATÁRIA pagará, enquanto não restituir o EQUIPAMENTO, aluguel-pena correspondente ao dobro do aluguel diário proporcional (art. 575 do Código Civil);
 d) incide a multa compensatória da Cláusula 15ª.
 8.4. A LOCATÁRIA autoriza, após comunicação prévia, o protesto deste contrato, das faturas e das medições (art. 1º da Lei nº 9.492/1997) e a inscrição do débito em cadastros de proteção ao crédito.
@@ -137,9 +142,10 @@ g) permitir à LOCADORA o acesso ao EQUIPAMENTO, em horário comercial, para ins
 10.3. Correm por conta da LOCATÁRIA as peças de desgaste acelerado consumidas na obra: dentes, unhas e adaptadores da caçamba, ponteira, buchas e pinos do rompedor, lâminas de corte e filtros trocados por contaminação. A LOCADORA pode fornecê-las e cobrar o custo comprovado na fatura seguinte.
 10.4. A paralisação por defeito do EQUIPAMENTO que não decorra de mau uso deve ser comunicada por escrito. A LOCADORA terá 48 (quarenta e oito) horas úteis para repará-lo ou substituí-lo por equipamento equivalente. Somente depois desse prazo haverá abatimento proporcional dos dias parados.
 10.5. Não geram abatimento as paralisações causadas pela LOCATÁRIA, como falta de combustível, de frente de serviço ou de vigilância, ordem de serviço inadequada, falta de pagamento ou suspensão prevista na Cláusula 8ª.
+10.6. A responsabilidade da LOCADORA por paralisação, defeito ou falta de operador limita-se ao abatimento proporcional previsto nas Cláusulas 10.4 e 12.5. A LOCADORA não responde por lucros cessantes, atraso de obra, multas ou penalidades que a LOCATÁRIA sofra perante seus contratantes, nem por danos indiretos, salvo dolo ou culpa grave.
 
 #H CLÁUSULA 11ª. DOS DANOS, FURTO, ROUBO E SINISTRO
-11.1. Da entrega até a devolução, a LOCATÁRIA responde pelos danos ao EQUIPAMENTO e pela sua perda, inclusive por mau uso, imperícia, negligência, acidente, tombamento, queda, incêndio, alagamento, vandalismo, furto, roubo ou apropriação indébita, e assume expressamente os riscos de caso fortuito e força maior ocorridos no canteiro ou durante o uso (art. 393 do Código Civil).
+11.1. Da entrega até a devolução, a LOCATÁRIA responde pelos danos ao EQUIPAMENTO e pela sua perda, inclusive por mau uso, imperícia, negligência, acidente, tombamento, queda, incêndio, alagamento, vandalismo, furto, roubo ou apropriação indébita, e assume expressamente os riscos de caso fortuito e força maior ocorridos no canteiro ou durante o uso (art. 393 do Código Civil). Fica ressalvado o dano causado exclusivamente por defeito do EQUIPAMENTO, cuja prova cabe à LOCATÁRIA.
 11.2. Em caso de perda total, furto ou roubo, a LOCATÁRIA pagará à LOCADORA, em 10 (dez) dias, o valor de reposição previsto no Quadro-Resumo, corrigido pelo IPCA desde a assinatura, ou o valor de mercado de equipamento equivalente, o que for maior, além do aluguel mensal mínimo até a data do pagamento da indenização, limitado a 6 (seis) meses.
 11.3. Ocorrido furto, roubo, acidente ou dano relevante, a LOCATÁRIA registrará boletim de ocorrência em até 24 (vinte e quatro) horas e entregará cópia à LOCADORA.
 11.4. A existência de seguro, contratado por qualquer das partes, não limita a responsabilidade da LOCATÁRIA, que pagará a franquia, os valores não cobertos e os aluguéis do período de reparo.
@@ -154,6 +160,7 @@ g) permitir à LOCADORA o acesso ao EQUIPAMENTO, em horário comercial, para ins
 12.5. Faltando o operador por motivo imputável à LOCADORA, ela o substituirá em até 2 (dois) dias úteis; após esse prazo, os dias sem operação serão abatidos proporcionalmente.
 12.6. Pagamentos, gratificações ou adiantamentos feitos diretamente ao operador não quitam nenhum valor devido à LOCADORA.
 12.7. Para fins fiscais, a parcela correspondente à mão de obra do operador poderá ser faturada em documento próprio, conforme orientação contábil da LOCADORA, sem alteração do valor total.
+12.8. Durante a locação e até 6 (seis) meses após o seu término, a LOCATÁRIA não contratará, direta ou indiretamente, o operador da LOCADORA, sob pena de multa equivalente a 1 (um) aluguel mensal mínimo.
 [/op]
 [sop]
 #H CLÁUSULA 12ª. DA OPERAÇÃO PELA LOCATÁRIA
@@ -165,24 +172,26 @@ g) permitir à LOCADORA o acesso ao EQUIPAMENTO, em horário comercial, para ins
 #H CLÁUSULA 13ª. DA MOBILIZAÇÃO E DA DESMOBILIZAÇÃO
 13.1. O transporte de ida e volta do EQUIPAMENTO (prancha ou carreta), escolta, licenças, carga e descarga correm por conta da LOCATÁRIA, na forma do Quadro-Resumo, e são devidos por inteiro ainda que o contrato termine antes do prazo mínimo.
 13.2. A LOCATÁRIA garantirá acesso adequado ao local de descarga. Custos extras causados por acesso inadequado, espera ou recusa de recebimento serão cobrados dela.
+13.3. Os riscos do transporte correm por conta de quem o contratar. Se a LOCATÁRIA contratar ou indicar o transportador, responde pelos danos ao EQUIPAMENTO durante o transporte, a carga e a descarga.
 
 #H CLÁUSULA 14ª. DO COMBUSTÍVEL
 14.1. O combustível é fornecido pela LOCATÁRIA. Se a LOCADORA adiantar combustível a pedido da LOCATÁRIA ou de seus prepostos, o valor comprovado será reembolsado na fatura seguinte.
 
 #H CLÁUSULA 15ª. DA RESCISÃO
 15.1. A LOCATÁRIA pode encerrar a locação antes do prazo mínimo mediante aviso escrito de 15 (quinze) dias, pagando os aluguéis até a devolução, a desmobilização e multa compensatória de 30% (trinta por cento) sobre os aluguéis mínimos que faltariam até o fim do prazo mínimo.
-15.2. A mesma multa compensatória incide na resolução por culpa da LOCATÁRIA (Cláusula 8.3), sem prejuízo da indenização por danos ao EQUIPAMENTO.
+15.2. A mesma multa compensatória incide na resolução por culpa da LOCATÁRIA (Cláusula 8.3), sem prejuízo da indenização por danos ao EQUIPAMENTO. A multa compensatória é o mínimo da indenização, e a LOCADORA poderá exigir indenização suplementar se provar prejuízo maior (art. 416, parágrafo único, do Código Civil).
 15.3. A LOCATÁRIA pode resolver o contrato sem multa se a LOCADORA descumprir a Cláusula 10.4, pagando apenas o período utilizado.
-15.4. O pedido de recuperação judicial ou extrajudicial, a falência, a insolvência, o protesto de títulos ou a paralisação geral das obras da LOCATÁRIA autorizam a LOCADORA, na forma da lei, a resolver o contrato e retomar o EQUIPAMENTO.
+15.4. A falência, a insolvência, o protesto de títulos ou a paralisação geral das obras da LOCATÁRIA autorizam a LOCADORA a resolver o contrato e retomar o EQUIPAMENTO. Em recuperação judicial ou extrajudicial da LOCATÁRIA, os aluguéis vencidos após o pedido serão pagos em dia, e o seu inadimplemento autoriza as medidas da Cláusula 8ª, observada a Lei nº 11.101/2005.
 15.5. A paralisação da obra por embargo, por falta de pagamento do contratante da LOCATÁRIA ou de órgão público, ou por decisão da própria LOCATÁRIA, não constitui caso fortuito ou força maior oponível à LOCADORA.
 
 #H CLÁUSULA 16ª. DAS COMUNICAÇÕES, DOS PREPOSTOS E DA PROVA
-16.1. São válidas as comunicações feitas aos e-mails e números de WhatsApp indicados no Quadro-Resumo, consideradas recebidas na data do envio. A troca de contato só vale após comunicação escrita à outra parte.
+16.1. São válidas as comunicações feitas aos e-mails e números de WhatsApp indicados no Quadro-Resumo, consideradas recebidas na data do envio, salvo aviso de falha na entrega. A troca de contato só vale após comunicação escrita à outra parte.
 16.2. Os prepostos indicados no Quadro-Resumo, e quem mais a LOCATÁRIA indicar por escrito, podem receber e devolver o EQUIPAMENTO, aprovar apontamentos e medições, solicitar horas excedentes, trabalho em fins de semana e combustível, e obrigam a LOCATÁRIA.
 16.3. Mensagens, áudios, fotos, vídeos, registros de telemetria e apontamentos trocados entre as partes ou seus prepostos constituem meio de prova, e as partes reconhecem sua autenticidade, salvo prova técnica em contrário.
 
 #H CLÁUSULA 17ª. DA ASSINATURA ELETRÔNICA
 17.1. Este contrato pode ser assinado eletronicamente por qualquer modalidade de assinatura eletrônica, inclusive pelo gov.br ou por plataforma de assinatura, que as partes aceitam como válida (art. 10, § 2º, da MP nº 2.200-2/2001 e Lei nº 14.063/2020), dispensadas as testemunhas (art. 784, § 4º, do Código de Processo Civil). Se assinado em papel, levará também a assinatura de duas testemunhas.
+17.2. Os signatários declaram ter poderes para obrigar as partes que representam, e a LOCATÁRIA reconhece como seus os atos praticados pelos prepostos indicados no Quadro-Resumo.
 
 #H CLÁUSULA 18ª. DISPOSIÇÕES GERAIS
 18.1. A tolerância de uma parte quanto ao descumprimento da outra não importa novação, renúncia ou alteração do contrato.

@@ -10,6 +10,8 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icone-192.png">
 <link rel="icon" href="icone-192.png">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>MG Gestão · Locações, contratos e cobranças</title>
 <style>
 :root{--g:#1B1F26;--g2:#262B34;--g3:#353B46;--y:#FFC21A;--y2:#F29F05;--t:#EEF0F3;--m:#9AA3B2;--ok:#38C172;--warn:#F6993F;--bad:#E3342F;--r:14px}
@@ -116,6 +118,7 @@ textarea{min-height:70px}
 
 <script src="contrato.js"></script>
 <script>
+if (window.top !== window.self) { try { window.top.location = window.self.location; } catch (e) { document.documentElement.innerHTML = ''; } }
 /* ===================== utilidades ===================== */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -193,13 +196,28 @@ function lerData(txt){
 
 /* ===================== dados ===================== */
 const CHAVE='mg_gestao_v1';
-let S = JSON.parse(localStorage.getItem(CHAVE)||'null') || semente();
-const salvar = () => localStorage.setItem(CHAVE, JSON.stringify(S));
+function limparDados(d){
+  const ID = /^[A-Za-z0-9_-]{1,40}$/, ROBO = /^https:\/\/script\.google(usercontent)?\.com\/macros\//;
+  if(!d || typeof d!=='object' || !Array.isArray(d.lanc) || !Array.isArray(d.clientes)) throw new Error('estrutura');
+  for(const k of ['clientes','maquinas','contratos','lanc','hist']){ d[k] = (Array.isArray(d[k])?d[k]:[]).filter(x=>x && typeof x==='object' && !Array.isArray(x)); }
+  for(const k of ['clientes','maquinas','contratos','lanc','hist']) for(const x of d[k]) for(const f of ['id','clienteId','maquinaId','contratoId','lancId'])
+    if(x[f]!=null && x[f]!=='' && !ID.test(String(x[f]))) throw new Error('identificador inválido em '+k);
+  for(const l of d.lanc){ l.valor=Number(l.valor)||0; l.venc=String(l.venc||''); l.pag=(Array.isArray(l.pag)?l.pag:[]).filter(p=>p&&typeof p==='object').map(p=>({data:String(p.data||''),valor:Number(p.valor)||0,obs:p.obs})); }
+  if(!d.empresa || typeof d.empresa!=='object') d.empresa = semente().empresa;
+  if(!d.enviados || typeof d.enviados!=='object' || Array.isArray(d.enviados)) d.enviados = {};
+  if(d.auto){ const t = /^[A-Za-z0-9_-]{8,80}$/.test(d.auto.token||'') ? d.auto.token : undefined;
+    d.auto = (typeof d.auto.url==='string' && ROBO.test(d.auto.url)) ? {url:d.auto.url, token:t} : {token:t}; }
+  return d;
+}
+let S;
+try { const bruto = localStorage.getItem(CHAVE); S = bruto ? limparDados(JSON.parse(bruto)) : semente(); }
+catch(e){ localStorage.setItem(CHAVE+'_quarentena', localStorage.getItem(CHAVE)||''); S = semente(); setTimeout(()=>alert('Os dados salvos estavam corrompidos e foram isolados. Restaure o último backup em Mais.'),500); }
+const salvar = () => { localStorage.setItem(CHAVE, JSON.stringify(S)); agendarSync(); };
 function semente(){
   return {
     versao:1,
     empresa:{nome:'MG Locações Ltda',cnpj:'20.441.510/0001-01',rep:'',repCpf:'',whats:'',banco:'',multa:10,juros:1,advogado:'Wendley Steffan Ferreira dos Santos, OAB/PB 27.884'},
-    maquinas:[{id:'m1',nome:'Escavadeira Hyundai Robex R220LC-9S B',apelidos:'escavadeira robex hyundai 220 rompedor',serie:'',acessorios:'Caçamba (concha) e rompedor hidráulico com ponteira',valorRep:0,obs:''}],
+    maquinas:[{id:'m1',nome:'Escavadeira Hyundai Robex R220LC-9S B',apelidos:'escavadeira robex hyundai 220 rompedor',serie:'',acessorios:'Caçamba (concha) e rompedor hidráulico com ponteira AJCE 250F',valorRep:0,obs:''},{"id": "m2", "nome": "Motoniveladora (marca e modelo a confirmar)", "apelidos": "motoniveladora patrol niveladora", "serie": "", "acessorios": "", "valorRep": 0, "obs": ""},{"id": "m3", "nome": "Cavalo mecânico nº 1 (marca e modelo a confirmar)", "apelidos": "cavalo caminhao cavalo um", "serie": "", "acessorios": "", "valorRep": 0, "obs": ""},{"id": "m4", "nome": "Cavalo mecânico nº 2 (marca e modelo a confirmar)", "apelidos": "cavalo caminhao cavalo dois", "serie": "", "acessorios": "", "valorRep": 0, "obs": ""},{"id": "m5", "nome": "Carreta prancha para transporte de máquinas", "apelidos": "carreta prancha transporte", "serie": "", "acessorios": "", "valorRep": 0, "obs": ""}],
     clientes:[], contratos:[], lanc:[], hist:[]
   };
 }
@@ -268,7 +286,7 @@ inicio(){
     <div class="card ok"><div class="l">Recebido no mês</div><div class="v">${R$(recMes)}</div></div>
     <div class="card"><div class="l">Lucro do mês</div><div class="v">${R$(recMes-despMes)}</div></div>
   </div>
-  ${!S.clientes.length?'<div class="item" style="border-color:var(--y)"><b>Primeiro acesso?</b><div class="dica">Toque em Mais › Restaurar e escolha o arquivo de dados enviado pelo seu advogado. Depois preencha em Mais › Dados da MG o sócio, o CPF e a conta para pagamento.</div><div class="row"><button class="btn y s" onclick="ir('mais')">Ir para Mais</button></div></div>':''}<h3>Cobrar agora (${cobrarHoje.length})</h3>
+  ${!S.clientes.length?'<div class="item" style="border-color:var(--y)"><b>Primeiro acesso?</b><div class="dica">Toque em Mais › Restaurar e escolha o arquivo de dados enviado pelo seu advogado. Depois preencha em Mais › Dados da MG o sócio, o CPF e a conta para pagamento.</div><div class="row"><button class="btn y s" onclick="ir(&#39;mais&#39;)">Ir para Mais</button></div></div>':''}<h3>Cobrar agora (${cobrarHoje.length})</h3>
   ${cobrarHoje.length ? cobrarHoje.slice(0,6).map(itemCobranca).join('') + (cobrarHoje.length>6?`<button class="btn full" onclick="ir('cobrancas')">Ver todas</button>`:'') : '<div class="vazio">Nada para cobrar hoje.</div>'}
   <h3>Contratos ativos (${ativos.length})</h3>
   ${ativos.length ? ativos.map(itemContrato).join('') : '<div class="vazio">Nenhum contrato ativo. Toque no 🎤 e diga: <i>"novo contrato da escavadeira para a Construtora X, 35 mil por mês, 3 meses, a partir de dia 1º de dezembro"</i>.</div>'}
@@ -294,7 +312,7 @@ cobrancas(){
   abertos.forEach(l=>{ (porCli[l.clienteId] ||= []).push(l); });
   const ids = Object.keys(porCli);
   return `<h2>Cobranças</h2>
-  <div class="row"><button class="btn s" onclick="exportarAgenda()">📅 Lembretes na agenda do celular</button><button class="btn s" onclick="pedirNotificacao()">🔔 Ativar avisos</button></div>
+  <div class="row"><button class="btn y s" onclick="abrirFila(true)">⚡ Cobranças de hoje (${filaHoje().length})</button><button class="btn s" onclick="exportarAgenda()">📅 Lembretes na agenda do celular</button><button class="btn s" onclick="pedirNotificacao()">🔔 Ativar avisos</button></div>
   ${ids.length ? ids.map(id=>{
     const ls=porCli[id], c=cli(id), tot=ls.reduce((a,l)=>a+saldo(l),0), atu=ls.reduce((a,l)=>a+encargos(l).total,0);
     return `<h3>${esc(c.nome)}</h3>
@@ -340,6 +358,9 @@ mais(){
   <h3>Clientes</h3>
   ${S.clientes.map(c=>`<div class="item"><div class="nm">${esc(c.nome)}</div><div class="sub">${esc(c.cnpj||'')}</div><div class="row"><button class="btn s" onclick="verCliente('${c.id}')">Ficha</button><button class="btn s" onclick="formCliente('${c.id}')">Editar</button></div></div>`).join('')}
   <button class="btn full" onclick="formCliente()">＋ Cliente</button>
+  <h3>Cobrança automática e agenda</h3>
+  <div class="item"><div class="nm">${S.auto&&S.auto.url?'🟢 Robô ligado':'⚪ Robô desligado'}</div><div class="sub">${S.auto&&S.auto.url?'Última sincronização: '+(localStorage.getItem('mg_sync')||'ainda não'):'Ligue para cobrar por e-mail sozinho e marcar os vencimentos no Google Agenda.'}</div>
+  <div class="row"><button class="btn y s" onclick="formAuto()">Configurar</button>${S.auto&&S.auto.url?'<button class="btn s" onclick="sincronizar(true)">Sincronizar agora</button>':''}</div></div>
   <h3>Empresa</h3>
   <button class="btn full" onclick="formEmpresa()">Dados da MG, conta e encargos</button>
   <h3>Segurança dos dados</h3>
@@ -418,6 +439,7 @@ function formCliente(id){
   <div class="grid2">${campo('rep','Representante',c.rep)}${campo('repCpf','CPF do representante',c.repCpf)}</div>
   <div class="grid2">${campo('whats','WhatsApp de cobrança',c.whats,'tel')}${campo('emails','E-mails do financeiro',c.emails)}</div>
   ${campo('contatos','Prepostos / contatos na obra',c.contatos,'area')}
+  <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--t);margin-top:14px"><input type="checkbox" id="f_auto" style="width:22px;height:22px" ${c.auto!==false?'checked':''}> Cobrança automática (e-mail do robô e fila do dia)</label>
   ${campo('apelidos','Apelidos para o comando de voz',c.apelidos)}
   ${campo('obs','Observações',c.obs,'area')}
   <button class="btn y full" onclick="salvarCliente('${id||''}')">Salvar</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
@@ -426,6 +448,7 @@ function salvarCliente(id){
   if(!fv('nome')) return alert('Informe o nome.');
   let c = S.clientes.find(x=>x.id===id); if(!c){ c={id:uid()}; S.clientes.push(c); }
   ['nome','cnpj','end','rep','repCpf','whats','emails','contatos','apelidos','obs'].forEach(k=>c[k]=fv(k));
+  c.auto = $('#f_auto') ? $('#f_auto').checked : true;
   salvar(); fechar(); render(); return c;
 }
 function formMaquina(id){
@@ -466,11 +489,11 @@ function verCliente(id){
 }
 function anotar(id, txt){ if(!txt) return; S.hist.push({id:uid(),clienteId:id,data:hoje(),txt}); salvar(); avisar('Anotado ✅'); }
 function registrarContato(id){ const l=S.lanc.find(x=>x.id===id); S.hist.push({id:uid(),clienteId:l.clienteId,data:hoje(),txt:`Cobrança enviada por WhatsApp (${etapa(l).t}): ${l.desc}.`}); salvar(); }
-function verMsg(id){ const l=S.lanc.find(x=>x.id===id), c=cli(l.clienteId);
+function verMsg(id){ const l=S.lanc.find(x=>x.id===id), c=cli(l.clienteId); window._wa = c.whats;
   const ops=['lembrete','hoje','atraso','suspensao','retomada','juridico'];
   abrir(`<h2>Mensagem de cobrança</h2><label>Etapa da régua</label><select id="f_et" onchange="$('#f_msg').value=mensagem(S.lanc.find(x=>x.id==='${id}'),this.value)">${ops.map(o=>`<option ${o===etapa(l).k?'selected':''} value="${o}">${o}</option>`).join('')}</select>
   ${campo('msg','Texto (pode editar)',mensagem(l),'area','style="min-height:160px"')}
-  <button class="btn wa full" onclick="window.open(linkWa('${esc(c.whats)}', fv('msg')));registrarContato('${id}')">Enviar no WhatsApp</button>
+  <button class="btn wa full" onclick="window.open(linkWa(window._wa, fv('msg')));registrarContato('${id}')">Enviar no WhatsApp</button>
   <button class="btn full" onclick="navigator.clipboard.writeText(fv('msg'));avisar('Copiado')">Copiar</button><button class="btn full" onclick="fechar()">Fechar</button>`); }
 function emailCobranca(id){
   const c=cli(id), ls=S.lanc.filter(l=>l.tipo==='R'&&l.clienteId===id&&saldo(l)>0);
@@ -484,7 +507,7 @@ function dossie(id){
   const ab=ls.filter(l=>saldo(l)>0), tot=ab.reduce((a,l)=>a+saldo(l),0);
   const txt = `DOSSIÊ DE COBRANÇA · MG LOCAÇÕES\nGerado em ${br(hoje())}\n\nDEVEDOR: ${c.nome}\nCNPJ: ${c.cnpj||'-'}\nEndereço: ${c.end||'-'}\nContatos: ${c.contatos||'-'}\nE-mails: ${c.emails||'-'}\n\nCONTRATOS\n${ks.map(k=>`- ${k.numero}: ${maq(k.maquinaId).nome}, ${br(k.inicio)} a ${br(k.fim)}, ${R$(k.valorMensal)}/mês, ${k.operador?'com':'sem'} operador${k.escrito===false?' (SEM CONTRATO ESCRITO)':''}`).join('\n')||'-'}\n\nVALORES EM ABERTO\n${ab.map(l=>`- ${l.desc}: ${R$(saldo(l))}, vencido em ${br(l.venc)} (${Math.max(0,atraso(l))} dias)${l.obs?' · '+l.obs:''}`).join('\n')}\nTOTAL ORIGINAL EM ABERTO: ${R$(tot)}\n\nHISTÓRICO\n${h.map(x=>`${br(x.data)}: ${x.txt}`).join('\n')}\n\nObservações: ${c.obs||'-'}`;
   abrir(`<h2>Dossiê para o advogado</h2>${campo('dos','',txt,'area','style="min-height:300px;font-size:12.5px"')}
-  <button class="btn y full" onclick="compartilhar('Dossiê ${esc(c.nome)}', fv('dos'))">Compartilhar</button><button class="btn full" onclick="navigator.clipboard.writeText(fv('dos'));avisar('Copiado')">Copiar</button><button class="btn full" onclick="fechar()">Fechar</button>`);
+  <button class="btn y full" onclick="compartilhar('Dossiê '+cli('${id}').nome, fv('dos'))">Compartilhar</button><button class="btn full" onclick="navigator.clipboard.writeText(fv('dos'));avisar('Copiado')">Copiar</button><button class="btn full" onclick="fechar()">Fechar</button>`);
 }
 function compartilhar(titulo, texto){ if(navigator.share) navigator.share({title:titulo,text:texto}).catch(()=>{}); else window.open('https://wa.me/?text='+encodeURIComponent(texto)); }
 function encerrar(id){ const k=S.contratos.find(x=>x.id===id); if(!confirm('Encerrar o contrato e registrar a devolução da máquina hoje?')) return; k.status='encerrado'; k.fim=hoje(); S.hist.push({id:uid(),clienteId:k.clienteId,data:hoje(),txt:`Contrato ${k.numero} encerrado; máquina devolvida.`}); salvar(); render(); }
@@ -517,7 +540,8 @@ function formContrato(pre={}){
   <h3>Fiador (sócio da locatária)</h3>
   <div class="grid2">${campo('fia_nome','Nome do fiador','')}${campo('fia_cpf','CPF do fiador','')}</div>
   ${campo('fia_end','Endereço do fiador','')}
-  <div class="dica" style="margin-top:8px">Sem fiador e sem caução, a MG fica sem garantia. Se o cliente recusar os dois, peça ao menos o 1º mês adiantado.</div>
+  ${campo('fia_conjuge','Estado civil e cônjuge (nome e CPF), se casado','','text','placeholder="ex.: casado com Maria X, CPF ..."')}
+  <div class="dica" style="margin-top:8px">Fiador casado: o cônjuge também precisa assinar, senão a fiança não vale (Súmula 332 do STJ). Sem fiador e sem caução, a MG fica sem garantia. Se o cliente recusar os dois, peça ao menos o 1º mês adiantado.</div>
   <button class="btn y full" onclick="gerarContrato()">Gerar contrato</button><button class="btn full" onclick="fechar()">Cancelar</button>`);
 }
 function setOp(v){ rascunho.operador=v; const b=document.querySelectorAll('#segop button'); b[0].classList.toggle('on',v); b[1].classList.toggle('on',!v); }
@@ -526,7 +550,7 @@ function dataExtenso(s){ const d=pISO(s); return d.getDate()+' de '+MESES_BR[d.g
 function gerarContrato(){
   if(!fv('cli_razao')) return alert('Informe o cliente.');
   let clienteId = fv('cli');
-  if(!clienteId){ const c={id:uid(),nome:fv('cli_razao'),cnpj:fv('cli_cnpj'),end:fv('cli_end'),rep:fv('cli_rep'),repCpf:fv('cli_rep_cpf'),whats:fv('cli_whats'),emails:fv('cli_email'),contatos:fv('prepostos'),apelidos:semAcento(fv('cli_razao')).split(' ').slice(0,2).join(' '),obs:''}; S.clientes.push(c); clienteId=c.id; }
+  if(!clienteId){ const c={id:uid(),nome:fv('cli_razao'),cnpj:fv('cli_cnpj'),end:fv('cli_end'),rep:fv('cli_rep'),repCpf:fv('cli_rep_cpf'),whats:fv('cli_whats'),emails:fv('cli_email'),contatos:fv('prepostos'),apelidos:semAcento(fv('cli_razao')).split(' ').slice(0,2).join(' '),obs:'',auto:true}; S.clientes.push(c); clienteId=c.id; }
   const m = maq(fv('maq')), inicio=fv('inicio')||hoje(), meses=Math.max(1,parseInt(fv('meses'))||1), valor=num(fv('valor'));
   if(!valor) return alert('Informe o valor mensal.');
   const fim = (()=>{ const d=pISO(addMeses(inicio,meses)); d.setDate(d.getDate()-1); return iso(d); })();
@@ -536,7 +560,7 @@ function gerarContrato(){
   const campos = {
     numero, cidade_data:'Campina Grande/PB, '+dataExtenso(hoje()), loc_rep:S.empresa.rep, loc_rep_cpf:S.empresa.repCpf,
     cli_razao:fv('cli_razao'), cli_cnpj:fv('cli_cnpj'), cli_end:fv('cli_end'), cli_rep:fv('cli_rep'), cli_rep_cpf:fv('cli_rep_cpf'), cli_email:fv('cli_email'), cli_whats:fv('cli_whats'), prepostos:fv('prepostos'),
-    fia_nome:fv('fia_nome'), fia_cpf:fv('fia_cpf'), fia_end:fv('fia_end'), caucao: cau?valorContrato(cau):'Não exigida',
+    fia_nome:fv('fia_nome'), fia_cpf:fv('fia_cpf'), fia_end:fv('fia_end'), fia_conjuge:fv('fia_conjuge'), caucao: cau?valorContrato(cau):'Não exigida',
     equip:m.nome, equip_serie:m.serie||'', acessorios:m.acessorios||'', valor_reposicao:valorContrato(m.valorRep),
     local_obra:fv('local_obra'), atividade:fv('atividade'),
     prazo_meses: meses+' ('+extensoInt(meses)+') '+(meses>1?'meses':'mês'), data_inicio:br(inicio), data_fim:br(fim),
@@ -557,6 +581,7 @@ function gerarContrato(){
   if(mob) S.lanc.push({id:uid(),tipo:'R',clienteId,contratoId:k.id,maquinaId:m.id,desc:`${numero}: mobilização`,ref:inicio,valor:mob,venc:inicio,pag:[]});
   S.hist.push({id:uid(),clienteId,data:hoje(),txt:`Contrato ${numero} gerado: ${m.nome}, ${R$(valor)}/mês, ${meses} mês(es) a partir de ${br(inicio)}.`});
   salvar(); fechar(); render(); abrirContrato(k.id);
+  if(!(S.auto && S.auto.url)) agendaContrato(k.id);
 }
 function textoContrato(k){
   let t = CONTRATO;
@@ -585,7 +610,7 @@ function htmlContrato(k, paraWord){
       html += '</table>';
     }
     else if(L.trim()==='#A'){
-      for(const [papel,nome] of [['LOCADORA','MG LOCAÇÕES LTDA'],['LOCATÁRIA',v.cli_razao||''],['FIADOR E DEVEDOR SOLIDÁRIO',v.fia_nome||'']])
+      for(const [papel,nome] of [['LOCADORA','MG LOCAÇÕES LTDA'],['LOCATÁRIA',v.cli_razao||''],['FIADOR E DEVEDOR SOLIDÁRIO',v.fia_nome||''],['CÔNJUGE DO FIADOR (anuência à fiança)','']])
         html += `<div class="ass">______________________________________________<br>${esc(nome)}<br>${papel}</div>`;
       html += `<p style="margin-top:24px;font-size:11px">Testemunhas (dispensadas se a assinatura for eletrônica):<br>1. ______________________ CPF ____________ &nbsp; 2. ______________________ CPF ____________</p>`;
     }
@@ -597,7 +622,7 @@ function abrirContrato(id){
   const k = S.contratos.find(x=>x.id===id); const c=cli(k.clienteId);
   $('#papel').innerHTML = htmlContrato(k);
   const resumo = `Olá! Segue o contrato de locação ${k.numero} da MG Locações (${maq(k.maquinaId).nome}, ${R$(k.valorMensal)}/mês, início ${br(k.inicio)}). Por favor, confira e assine pelo gov.br (assinatura eletrônica gratuita) e devolva o PDF assinado por aqui.`;
-  $('#docacoes').innerHTML = `<button class="btn y s" onclick="window.print()">🖨️ PDF / imprimir</button><button class="btn s" onclick="baixarWord('${id}')">⬇️ Word</button><a class="btn wa s" target="_blank" href="${linkWa(c.whats,resumo)}">Enviar no WhatsApp</a><a class="btn s" target="_blank" href="https://www.gov.br/governodigital/pt-br/identidade/assinatura-eletronica">✍️ Assinar grátis (gov.br)</a><button class="btn s" onclick="$('#doc').classList.remove('on')">✕ Fechar</button>`;
+  $('#docacoes').innerHTML = `<button class="btn y s" onclick="window.print()">🖨️ PDF / imprimir</button><button class="btn s" onclick="baixarWord('${id}')">⬇️ Word</button><a class="btn wa s" target="_blank" href="${linkWa(c.whats,resumo)}">Enviar no WhatsApp</a><a class="btn s" target="_blank" href="https://www.gov.br/governodigital/pt-br/identidade/assinatura-eletronica">✍️ Assinar grátis (gov.br)</a><button class="btn s" onclick="agendaContrato('${id}')">📅 Agenda</button><button class="btn s" onclick="$('#doc').classList.remove('on')">✕ Fechar</button>`;
   $('#doc').classList.add('on'); $('#doc').scrollTop=0;
 }
 function baixarWord(id){
@@ -609,15 +634,65 @@ function baixarWord(id){
 function baixar(blob,nome){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nome; document.body.appendChild(a); a.click(); a.remove(); }
 
 /* ===================== agenda, avisos, backup ===================== */
-function exportarAgenda(){
-  const ls = S.lanc.filter(l=>l.tipo==='R' && saldo(l)>0 && atraso(l)<=0);
+function agendaContrato(id){
+  const k=S.contratos.find(x=>x.id===id); const ls=S.lanc.filter(l=>l.contratoId===id && l.tipo==='R' && saldo(l)>0);
+  exportarAgenda(ls, k, `agenda-${k.numero}.ics`);
+}
+function exportarAgenda(lista, contrato, nome){
+  const ls = lista || S.lanc.filter(l=>l.tipo==='R' && saldo(l)>0 && atraso(l)<=0);
   if(!ls.length) return alert('Não há vencimentos futuros em aberto.');
   const d = s => s.replace(/-/g,'');
   let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MG Gestao//PT-BR\r\n';
+  if(contrato && contrato.fim) ics += `BEGIN:VEVENT\r\nUID:fim-${contrato.id}@mggestao\r\nDTSTAMP:${d(hoje())}T090000\r\nDTSTART;VALUE=DATE:${d(contrato.fim)}\r\nSUMMARY:Fim do contrato ${contrato.numero}: renovar ou recolher a máquina\r\nBEGIN:VALARM\r\nTRIGGER:-P7D\r\nACTION:DISPLAY\r\nDESCRIPTION:Contrato termina em 7 dias\r\nEND:VALARM\r\nEND:VEVENT\r\n`;
   ls.forEach(l=>{ ics += `BEGIN:VEVENT\r\nUID:${l.id}@mggestao\r\nDTSTAMP:${d(hoje())}T090000\r\nDTSTART;VALUE=DATE:${d(l.venc)}\r\nSUMMARY:Cobrar ${cli(l.clienteId).nome.slice(0,40)}: ${R$(saldo(l))}\r\nDESCRIPTION:${l.desc}\r\nBEGIN:VALARM\r\nTRIGGER:-P3D\r\nACTION:DISPLAY\r\nDESCRIPTION:Vence em 3 dias\r\nEND:VALARM\r\nBEGIN:VALARM\r\nTRIGGER:PT9H\r\nACTION:DISPLAY\r\nDESCRIPTION:Vence hoje\r\nEND:VALARM\r\nEND:VEVENT\r\n`; });
   ics += 'END:VCALENDAR';
-  baixar(new Blob([ics],{type:'text/calendar'}),'vencimentos-MG.ics');
-  avisar('Abra o arquivo para adicionar os lembretes à agenda');
+  baixar(new Blob([ics],{type:'text/calendar'}), nome || 'vencimentos-MG.ics');
+  avisar('📅 Abra o arquivo baixado e toque em "Adicionar" para marcar na agenda');
+}
+
+/* ===================== cobrança automática ===================== */
+const ETAPAS_FILA = ['lembrete','hoje','atraso','suspensao'];
+function filaHoje(){
+  const env = S.enviados || {};
+  return S.lanc.filter(l=>{ if(l.tipo!=='R' || saldo(l)<=0) return false; const c=cli(l.clienteId); if(c.auto===false) return false;
+    const k=etapa(l).k; return ETAPAS_FILA.includes(k) && !env[l.id+':'+k]; }).sort((a,b)=>a.venc<b.venc?-1:1);
+}
+function abrirFila(forcar){
+  const f = filaHoje();
+  if(!f.length){ if(forcar) avisar('Nenhuma cobrança pendente hoje 👏'); return; }
+  if(!forcar && localStorage.getItem('mg_fila')===hoje()) return;
+  localStorage.setItem('mg_fila', hoje());
+  abrir(`<h2>⚡ Cobranças de hoje (${f.length})</h2><div class="dica">O app separou as cobranças da régua de hoje. Toque em WhatsApp: a mensagem já vai pronta, é só enviar.</div>
+  ${f.map(l=>{ const c=cli(l.clienteId), e=etapa(l); return `<div class="item" id="fila_${l.id}"><div class="top"><div><div class="nm">${esc(c.nome)}</div><div class="sub">${esc(l.desc)} · vence ${br(l.venc)}</div></div><div class="val">${R$(saldo(l))}</div></div><span class="tag ${e.c}">${e.t}</span>
+  <div class="row"><a class="btn wa s" target="_blank" href="${linkWa(c.whats, mensagem(l))}" onclick="marcarEnviado('${l.id}')">WhatsApp</a>${c.emails?`<a class="btn s" href="mailto:${esc(c.emails.replace(/\s/g,''))}?subject=${encodeURIComponent('MG Locações: '+e.t)}&body=${encodeURIComponent(mensagem(l))}" onclick="marcarEnviado('${l.id}')">E-mail</a>`:''}<button class="btn s" onclick="marcarEnviado('${l.id}',true)">Pular</button></div></div>`; }).join('')}
+  <button class="btn full" onclick="fechar()">Fechar</button>`);
+}
+function marcarEnviado(id, pulou){
+  const l=S.lanc.find(x=>x.id===id); const k=etapa(l).k; (S.enviados ||= {})[id+':'+k]=hoje();
+  if(!pulou) registrarContato(id); else salvar();
+  const el=document.getElementById('fila_'+id); if(el) el.style.opacity='.35';
+}
+let _syncT=null;
+function agendarSync(){ if(!S.auto || !S.auto.url) return; clearTimeout(_syncT); _syncT=setTimeout(()=>sincronizar(false),1500); }
+function sincronizar(manual){
+  const a=S.auto; if(!a || !a.url) return;
+  fetch(a.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:a.token,dados:S})})
+    .then(()=>{ localStorage.setItem('mg_sync', new Date().toLocaleString('pt-BR')); if(manual){ avisar('Dados enviados ao robô ✅'); render(); } })
+    .catch(()=>{ if(manual) alert('Sem internet agora. O app envia de novo na próxima alteração.'); });
+}
+function formAuto(){
+  const a = S.auto || {}; const tok = a.token || ('mg-'+Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join(''));
+  abrir(`<h2>Cobrança automática e agenda</h2>
+  <div class="dica">O robô roda grátis na conta Google da MG: cobra por e-mail nas datas da régua (lembrete, vencimento, atraso e aviso de suspensão), marca os vencimentos no Google Agenda e manda um resumo diário. Retomada da máquina e jurídico nunca vão sozinhos: ele só avisa você. Siga o guia "Como ligar a cobrança automática".</div>
+  ${campo('url','Endereço do robô (URL do app da Web do Google)',a.url||'','url','placeholder="https://script.google.com/macros/s/.../exec"')}
+  ${campo('token','Código de segurança (copie para o robô)',tok,'text','readonly')}
+  <div class="row"><button class="btn s" onclick="navigator.clipboard.writeText(fv('token'));avisar('Código copiado')">Copiar código</button>${a.url && /^https:\/\/script\.google(usercontent)?\.com\/macros\//.test(a.url)?`<a class="btn s" target="_blank" rel="noopener noreferrer" href="${esc(a.url)}">Testar robô</a>`:''}</div>
+  <button class="btn y full" onclick="salvarAuto()">Salvar e ligar</button>${a.url?'<button class="btn bad full" onclick="S.auto={token:S.auto.token};salvar();fechar();render()">Desligar robô</button>':''}<button class="btn full" onclick="fechar()">Cancelar</button>`);
+}
+function salvarAuto(){
+  const url=fv('url');
+  if(url && !/^https:\/\/script\.google(usercontent)?\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)) return alert('Cole o endereço que termina em /exec, gerado pelo Google Apps Script.');
+  S.auto={url, token:fv('token')}; salvar(); fechar(); render(); if(url){ sincronizar(true); }
 }
 function pedirNotificacao(){ if(!('Notification' in window)) return alert('Este aparelho não suporta avisos. Use os lembretes na agenda.'); Notification.requestPermission().then(p=>{ if(p==='granted'){ avisar('Avisos ativados'); notificarHoje(true); } }); }
 function notificarHoje(forcar){
@@ -630,11 +705,11 @@ function notificarHoje(forcar){
   localStorage.setItem('mg_notif', hoje());
 }
 function backup(){ baixar(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}), `backup-mg-gestao-${hoje()}.json`); }
-function restaurar(f){ if(!f) return; f.text().then(t=>{ try{ const d=JSON.parse(t); if(!d.lanc||!d.clientes) throw 0; S=d; salvar(); render(); avisar('Backup restaurado ✅'); }catch(e){ alert('Arquivo inválido.'); } }); }
+function restaurar(f){ if(!f) return; f.text().then(t=>{ try{ const d=limparDados(JSON.parse(t)); S=d; salvar(); render(); avisar('Backup restaurado ✅'); }catch(e){ alert('Arquivo inválido.'); } }); }
 function exportarCSV(){
   const linhas=[['tipo','cliente','maquina','descricao','referencia','vencimento','valor','pago','saldo']];
   S.lanc.forEach(l=>linhas.push([l.tipo==='R'?'receber':'despesa',cli(l.clienteId).nome||'',maq(l.maquinaId).nome||'',l.desc,l.ref||'',l.venc,String(l.valor).replace('.',','),String(pago(l)).replace('.',','),String(l.tipo==='R'?saldo(l):0).replace('.',',')]));
-  baixar(new Blob(['﻿'+linhas.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n')],{type:'text/csv'}),`financeiro-mg-${hoje()}.csv`);
+  baixar(new Blob(['﻿'+linhas.map(r=>r.map(x=>{ let v=String(x); if(/^[=+\-@\t\r]/.test(v) && !/^-?\d+(,\d+)?$/.test(v)) v="'"+v; return '"'+v.replace(/"/g,'""')+'"'; }).join(';')).join('\n')],{type:'text/csv'}),`financeiro-mg-${hoje()}.csv`);
 }
 function avisar(t){ const d=document.createElement('div'); d.textContent=t; d.style.cssText='position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#FFC21A;color:#1B1F26;font-weight:700;padding:10px 16px;border-radius:10px;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.4)'; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
 
@@ -730,7 +805,8 @@ function interpretarTela(){
 
 /* ===================== início ===================== */
 if(!localStorage.getItem(CHAVE)) salvar();
-render(); notificarHoje();
+render(); notificarHoje(); setTimeout(()=>abrirFila(false), 600); sincronizar(false);
+window.addEventListener('online', ()=>sincronizar(false));
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
